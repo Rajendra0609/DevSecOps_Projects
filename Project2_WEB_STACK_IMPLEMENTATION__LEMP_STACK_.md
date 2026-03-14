@@ -1,7 +1,7 @@
 ## WEB STACK IMPLEMENTATION (LEMP STACK)
 ### STEP 1 – INSTALLING THE NGINX WEB SERVER
 #### Steps
-* To start, update server’s package index. Afterwards, use apt install to get the Nginx installation going. To start the update run: **Sudo apt update**
+* To start, update server’s package index. Afterwards, use apt install to get the Nginx installation going. To start the update run: **sudo apt update**
 * Next, install Nginx by running: **sudo apt install nginx**
 * At the prompt, enter Y to confirm that you want to install Nginx. This would complete the installation process.
 * To confirm that nginx was successfully installed and is running as a service in Ubuntu, run: **sudo systemctl status nginx**
@@ -25,9 +25,9 @@
 * Next, log into MySQL: **sudo mysql**
 ![Project2pix5](https://user-images.githubusercontent.com/74002629/176843903-6587c9ef-4d64-4887-8594-a7b66c815bed.PNG)
 
-* Run a security script that comes pre-installed with MySQL. This script will remove some insecure default settings and lock down access to your database system. run the follwing command: **ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'PassWord.1';**
+* Run a security script that comes pre-installed with MySQL. This script will remove some insecure default settings and lock down access to your database system. run the following command: **ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'PassWord.1';**
 * Exit SQL shell by typing **exit** 
-* Start interactive scripting to configure the validate password pluggin. Run: **sudo mysql_secure_installation** and answer Y to all the prompts. At the point you can change the password of your root user and also decide the level of password validation.
+* Start interactive scripting to configure the validate password plugin. Run: **sudo mysql_secure_installation** and answer Y to all the prompts. At the point you can change the password of your root user and also decide the level of password validation.
 * When done, test to know if login to the console is possible. type: **sudo mysql -p** 
 ![Project2pix7](https://user-images.githubusercontent.com/74002629/176843938-5bbaa580-f126-42e7-b6b6-bcd985638a7f.PNG)
 
@@ -39,7 +39,7 @@
 #### Steps
 * PHP has to be installed to process code and generate dynamic content for the web server.
 * Nginx requires an external program to handle PHP processing and act as a bridge between the PHP interpreter itself and the web server. This allows for a better overall performance in most PHP-based websites, but it requires additional configuration. You’ll need to install php-fpm, which stands for “PHP fastCGI process manager”, and tell Nginx to pass PHP requests to this software for processing. Additionally, you’ll need php-mysql, a PHP module that allows PHP to communicate with MySQL-based databases. Core PHP packages will automatically be installed as dependencies.
-* To install the 2 pacakages at once, run: **sudo apt install php-fpm php-mysql**
+* To install the 2 packages at once, run: **sudo apt install php-fpm php-mysql**
 * Type Y to confirm installation and enter.
 
 
@@ -76,7 +76,7 @@ server {
 ```
 ![Project2pix10](https://user-images.githubusercontent.com/74002629/176855089-b017242e-425a-486f-8c3e-90ea1f8ba667.PNG)
 
-* In the namo editor, enter CTRL+X to exit and Y to confirm.
+* In the nano editor, enter CTRL+X to exit and Y to confirm.
 * Activate the configuration by linking to the config file from Nginx’s sites-enabled directory, run: **sudo ln -s /etc/nginx/sites-available/projectLEMP /etc/nginx/sites-enabled/**
 * test your configuration for syntax errors by typing: **sudo nginx -t**
 ![Project2pix11](https://user-images.githubusercontent.com/74002629/176855487-7f07f551-912b-4529-95d1-74b2ff947779.PNG)
@@ -92,7 +92,7 @@ server {
 
 ### STEP 5 – TESTING PHP WITH NGINX
 #### Steps
-* Now that LAMP stack is completely installed and fully operational. We test it to validate that Nginx can correctly hand .php files off to your PHP processor.
+* Now that LEMP stack is completely installed and fully operational. We test it to validate that Nginx can correctly hand .php files off to your PHP processor.
 * Open a new file called info.php within your document root in your text editor: **sudo nano /var/www/projectLEMP/info.php**
 * Type the following lines into the new file.
 ```

@@ -58,7 +58,7 @@ sudo mkfs -t ext4 /dev/webdata-vg/logs-lv
 
 25. Test the configuration and reload the daemon: 
 ```
-sudo mount -a`
+sudo mount -a
 sudo systemctl daemon-reload
 ```
 26. Verify your setup by running `df -h`
@@ -78,7 +78,7 @@ sudo systemctl start httpd
 ```
 ![pix17](https://user-images.githubusercontent.com/74002629/182375448-cdc35ab4-7f85-43f9-be40-b8e3419513c9.PNG)
 
-32. install PHP and it’s depemdencies:
+32. install PHP and it’s dependencies:
 ```
 sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
 sudo yum install yum-utils http://rpms.remirepo.net/enterprise/remi-release-8.rpm

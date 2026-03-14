@@ -573,9 +573,9 @@ xml
 ```
 xml
 <Context>
-  <Manager pathname="" />
-  <Manager pathname=""
-           className="org.apache.catalina.ha.session.DeltaManager"
+  <!-- Only one Manager element allowed. Use DeltaManager for cluster session replication. -->
+  <Manager className="org.apache.catalina.ha.session.DeltaManager"
+           pathname=""
            expireSessionsOnShutdown="false"
            notifyListenersOnReplication="true"/>
 </Context>

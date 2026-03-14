@@ -7,7 +7,7 @@ Our infrastructure is a three-tiered architecture that features the following an
 - A route table associated it with public subnets
 - A route table associated it with private subnets
 - Internet Gateway
-- Public route in table, associated with the Internet Gateway. (This is what allows a public subnet to be accisble from the Internet)
+- Public route in table, associated with the Internet Gateway. (This is what allows a public subnet to be accessible from the Internet)
 - Elastic IPs
 - Nat Gateway
 - Security Groups
@@ -83,7 +83,7 @@ According to our architectural design, we require 6 subnets: 2 public, 2 private
 ##### Note 
 The above configurations has serveral problems that includes:
 - Hard coded values: Both the availability_zone and cidr_block arguments are hard coded. We should always endeavour to make our work dynamic.
-- Multiple Resource Blocks: we declared multiple resource blocks for each subnet in the code. This is bad coding practice. Best parctice is to create a single resource block that can dynamically create resources. If we had to create a lot of subnets, our code would quickly become overwhelming. To optimize this, we can make use of a count argument.
+- Multiple Resource Blocks: we declared multiple resource blocks for each subnet in the code. This is bad coding practice. Best practice is to create a single resource block that can dynamically create resources. If we had to create a lot of subnets, our code would quickly become overwhelming. To optimize this, we can make use of a count argument.
 Let's improve the code by refactoring it.
 3. Run `terraform destroy` to destroy the current infrastructure and type **yes** after reviewing it.
 
@@ -134,7 +134,7 @@ To Fix hard coded values, we will use variables, and remove hard coding.
     resource "aws_vpc" "main" {
     cidr_block                     = var.vpc_cidr
     enable_dns_support             = var.enable_dns_support 
-    enable_dns_hostnames           = var.enable_dns_support
+    enable_dns_hostnames           = var.enable_dns_hostnames
     enable_classiclink             = var.enable_classiclink
     enable_classiclink_dns_support = var.enable_classiclink
 
@@ -197,7 +197,7 @@ variable "preferred_number_of_public_subnets" {
   default = 2
 }
 ```
-8. Next, update the count argument with a condition. Terraform needs to check first if there is a desired number of subnets. Otherwise, use the data returned by the lenght function. See how that is presented below.
+8. Next, update the count argument with a condition. Terraform needs to check first if there is a desired number of subnets. Otherwise, use the data returned by the length function. See how that is presented below.
 ```
 # Create public subnets
 resource "aws_subnet" "public" {
@@ -211,7 +211,7 @@ resource "aws_subnet" "public" {
 ```
 
 - The first part var.preferred_number_of_public_subnets == null checks if the value of the variable is set to null or has some value defined.
-- The second part ? and length(data.aws_availability_zones.available.names) means, if the first part is true, then use this. In other words, if preferred number of public subnets is null (Or not known) then set the value to the data returned by lenght function.
+- The second part ? and length(data.aws_availability_zones.available.names) means, if the first part is true, then use this. In other words, if preferred number of public subnets is null (Or not known) then set the value to the data returned by length function.
 - The third part : and var.preferred_number_of_public_subnets means, if the first condition is false, i.e preferred number of public subnets is not null then set the value to whatever is definied in var.preferred_number_of_public_subnets
 Your entire configuration should now look like this: 
 ```
@@ -256,7 +256,7 @@ provider "aws" {
 resource "aws_vpc" "main" {
   cidr_block                     = var.vpc_cidr
   enable_dns_support             = var.enable_dns_support 
-  enable_dns_hostnames           = var.enable_dns_support
+  enable_dns_hostnames           = var.enable_dns_hostnames
   enable_classiclink             = var.enable_classiclink
   enable_classiclink_dns_support = var.enable_classiclink
 
@@ -274,7 +274,7 @@ resource "aws_subnet" "public" {
 ```
 ### variables.tf & terraform.tfvars
 To make our code more readable and better structured, we will be making use of varibles.tf and terraform.tfvars files. Put all variable declarations in a separate file named variable.tf and provide non-default values to each variable in the terraform.tfvars
-1. Create a new file and name it varible.tf then copy all the variable declarations into the new file.
+1. Create a new file and name it variables.tf then copy all the variable declarations into the new file.
 2. Create another file, name it terraform.tfvars. Set values for each of the variables.
 3. Your main.tf, variable.tf and terraform.tfvars files should look like the following below:
 main.tf
@@ -292,7 +292,7 @@ provider "aws" {
 resource "aws_vpc" "main" {
   cidr_block                     = var.vpc_cidr
   enable_dns_support             = var.enable_dns_support 
-  enable_dns_hostnames           = var.enable_dns_support
+  enable_dns_hostnames           = var.enable_dns_hostnames
   enable_classiclink             = var.enable_classiclink
   enable_classiclink_dns_support = var.enable_classiclink
 
@@ -353,6 +353,6 @@ enable_classiclink_dns_support = "false"
 
 preferred_number_of_public_subnets = 2
 ```
-4. Your file structure shouke look like this
+4. Your file structure should look like this
 ![pix15](https://user-images.githubusercontent.com/74002629/197528278-bf472aa3-7e9a-4542-a8a3-9daacaf8c00c.PNG)
 5. Run `terraform plan` and ensure everything works.

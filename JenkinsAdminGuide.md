@@ -21,8 +21,7 @@ This project covers comprehensive Jenkins administration including installation,
 
 ### Install on Ubuntu/Debian
 
-```
-bash
+```bash
 # Update package index
 sudo apt update
 
@@ -47,8 +46,7 @@ sudo systemctl status jenkins
 
 ### Install on CentOS/RHEL
 
-```
-bash
+```bash
 # Install Java
 sudo yum install -y java-11-openjdk
 
@@ -66,8 +64,7 @@ sudo systemctl enable jenkins
 
 ### Install with Docker
 
-```
-bash
+```bash
 # Pull Jenkins image
 docker pull jenkins/jenkins:lts
 
@@ -86,8 +83,7 @@ docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 ### Install with Docker Compose
 
-```
-yaml
+```yaml
 # docker-compose.yml
 version: '3.8'
 
@@ -113,8 +109,7 @@ volumes:
 
 ### Setup Wizard
 
-```
-bash
+```bash
 # Access Jenkins at http://localhost:8080
 
 # Step 1: Unlock Jenkins
@@ -136,8 +131,7 @@ bash
 
 ### Manual Configuration
 
-```
-bash
+```bash
 # Disable setup wizard
 mkdir -p /var/lib/jenkins/init.groovy.d
 
@@ -156,8 +150,7 @@ sudo systemctl restart jenkins
 
 ### Configure System Settings
 
-```
-groovy
+```groovy
 // Configure in Manage Jenkins → Configure System
 
 // General Settings
@@ -180,8 +173,7 @@ groovy
 
 ### Create Users
 
-```
-bash
+```bash
 # Create user via Jenkins CLI
 java -jar jenkins-cli.jar -s http://localhost:8080 \
   create-user admin admin admin@example.com
@@ -200,8 +192,7 @@ user.save()
 
 ### LDAP Integration
 
-```
-groovy
+```groovy
 // Configure LDAP in Jenkins System
 // Go to: Manage Jenkins → Configure Global Security
 // Security Realm: LDAP
@@ -226,8 +217,7 @@ jenkins:
 
 ### SSO with OAuth
 
-```
-groovy
+```groovy
 // Install OAuth plugin
 // Configure GitHub OAuth:
 // 1. Create GitHub OAuth App
@@ -248,8 +238,7 @@ jenkins:
 
 ### Configure Security
 
-```
-groovy
+```groovy
 // Configure in: Manage Jenkins → Configure Global Security
 
 // Authorization Matrix
@@ -265,8 +254,7 @@ groovy
 
 ### CSRF Protection
 
-```
-groovy
+```groovy
 // Enable CSRF Protection
 // Configure in: Manage Jenkins → Configure Global Security
 // Prevent Cross Site Request Forgery exploits: Enabled
@@ -275,8 +263,7 @@ groovy
 
 ### API Token
 
-```
-bash
+```bash
 # Create API token
 # Go to: User → Configure → API Token
 # Click "Add new Token"
@@ -290,8 +277,7 @@ curl -u "username:api-token" http://localhost:8080/job/myjob/build
 
 ### Install Plugins
 
-```
-bash
+```bash
 # Install plugins via Jenkins CLI
 java -jar jenkins-cli.jar -s http://localhost:8080 \
   install-plugin docker-workflow
@@ -310,8 +296,7 @@ pluginManager.installPlugin(pluginName, false)
 
 ### Update Plugins
 
-```
-bash
+```bash
 # Check for plugin updates
 # Go to: Manage Jenkins → Manage Plugins → Updates
 
@@ -326,8 +311,7 @@ java -jar jenkins-cli.jar -s http://localhost:8080 \
 
 ### Configure Plugin Repository
 
-```
-groovy
+```groovy
 // Configure custom plugin repository
 // Go to: Manage Jenkins → Manage Plugins → Advanced
 // Update Site: https://updates.jenkins.io/update-center.json
@@ -340,8 +324,7 @@ groovy
 
 ### Manual Backup
 
-```
-bash
+```bash
 #!/bin/bash
 # backup_jenkins.sh
 
@@ -363,8 +346,7 @@ echo "Backup complete: jenkins_home_$DATE.tar.gz"
 
 ### Automated Backup with ThinBackup
 
-```
-groovy
+```groovy
 // Install ThinBackup Plugin
 // Configure:
 // Go to: Manage Jenkins → ThinBackup
@@ -381,8 +363,7 @@ groovy
 
 ### Restore from Backup
 
-```
-bash
+```bash
 #!/bin/bash
 # restore_jenkins.sh
 
@@ -416,8 +397,7 @@ echo "Restore complete!"
 
 ### Clean Up Old Builds
 
-```
-groovy
+```groovy
 // Clean up old builds
 import hudson.model.Job
 import hudson.tasks.LogRotator
@@ -447,8 +427,7 @@ Jenkins.instance.items.each { job ->
 
 ### Clean Up Workspace
 
-```
-groovy
+```groovy
 // Delete workspaces not in use
 import hudson.model.Node
 
@@ -479,8 +458,7 @@ Jenkins.instance.items.each { job ->
 
 ### Clean Up Logs
 
-```
-bash
+```bash
 # Clean old logs
 find /var/log/jenkins -name "*.log.*" -mtime +30 -delete
 
@@ -495,8 +473,7 @@ find /var/lib/jenkins/jobs -name "log" -mtime +30 -delete
 
 ### JVM Options
 
-```
-bash
+```bash
 # Configure JVM options
 # Edit: /etc/default/jenkins
 
@@ -513,8 +490,7 @@ sudo systemctl restart jenkins
 
 ### Optimize Executors
 
-```
-groovy
+```groovy
 // Optimize executor count
 // For master-only builds
 Jenkins.instance.numExecutors = 2
@@ -533,8 +509,7 @@ Jenkins.instance.slaves.each { agent ->
 
 ### Cache Configuration
 
-```
-groovy
+```groovy
 // Configure caches
 System.setProperty("hudson.model.LoadStatistics.decay", "0.5")
 System.setProperty("hudson.model.Job.consoleLogDataThreshold", "500KB")
@@ -548,8 +523,7 @@ System.setProperty("hudson.util.AtmosphereResourceCache.maxSizePerContext", "100
 
 ### Prometheus Monitoring
 
-```
-groovy
+```groovy
 // Install Prometheus Plugin
 // Configure: Manage Jenkins → System → Prometheus
 
@@ -566,8 +540,7 @@ scrape_configs:
 
 ### Health Check
 
-```
-groovy
+```groovy
 // Create health check endpoint
 import javax.servlet.http.HttpServletResponse
 
@@ -599,8 +572,7 @@ healthCheck()
 
 ### Common Issues
 
-```
-bash
+```bash
 # Issue: Jenkins won't start
 # Solution: Check logs
 tail -f /var/log/jenkins/jenkins.log
@@ -618,8 +590,7 @@ netstat -tulpn | grep 8080
 
 ### Memory Issues
 
-```
-bash
+```bash
 # Check memory usage
 free -h
 
@@ -632,8 +603,7 @@ JAVA_ARGS="-Xlog:gc*:file=/var/log/jenkins/gc.log:time,uptime,level,tags -Xms102
 
 ### Plugin Issues
 
-```
-bash
+```bash
 # Disable plugin
 # Rename plugin file
 mv /var/lib/jenkins/plugins/docker-workflow.jpi /var/lib/jenkins/plugins/docker-workflow.jpi.disabled
@@ -646,8 +616,7 @@ systemctl restart jenkins
 
 ### Database/Build Issues
 
-```
-groovy
+```groovy
 // Rebuild plugin index
 Jenkins.instance.pluginManager.doCheckUpdatesServer()
 
@@ -662,8 +631,7 @@ new File(Jenkins.instance.rootDir, "tmp").deleteDir()
 
 ### User Management
 
-```
-groovy
+```groovy
 // List all users
 import hudson.model.User
 
@@ -680,8 +648,7 @@ user.save()
 
 ### Job Management
 
-```
-groovy
+```groovy
 // List all jobs
 Jenkins.instance.items.each { job ->
     println "${job.name} - ${job.class.simpleName} - ${job.lastBuild?.number ?: 'No builds'}"
@@ -706,8 +673,7 @@ Jenkins.instance.items.each { job ->
 
 ### System Information
 
-```
-groovy
+```groovy
 // Get system information
 println "Jenkins Version: ${Jenkins.instance.version}"
 println "Java Version: ${System.getProperty('java.version')}"
@@ -724,8 +690,7 @@ println "Executors: ${Jenkins.instance.numExecutors}"
 
 ### Basic Configuration
 
-```
-yaml
+```yaml
 # jenkins.yaml
 jenkins:
   systemMessage: "Jenkins Managed by JCasC"
@@ -774,8 +739,7 @@ jenkins:
 
 ### Configure Tools
 
-```
-yaml
+```yaml
 # tools.yaml
 unclassified:
   location:
@@ -822,8 +786,7 @@ unclassified:
 
 ### Configure Jobs
 
-```
-yaml
+```yaml
 # jobs.yaml
 jobs:
   - script: >

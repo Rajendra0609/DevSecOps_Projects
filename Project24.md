@@ -292,12 +292,12 @@ resource "aws_key_pair" "deployer" {
 
 # Create Web Server 1
 resource "aws_instance" "web_1" {
-  ami               = data.aws_ami.amazon_linux.id
-  instance_type     = var.instance_type
-  subnet_id         = aws_subnet.public_1.id
-  key_name          = aws_key_pair.deployer.key_name
-  security_groups   = [aws_security_group.web.id]
-  user_data         = <<-EOF
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.public_1.id
+  key_name               = aws_key_pair.deployer.key_name
+  vpc_security_group_ids = [aws_security_group.web.id]
+  user_data              = <<-EOF
               #!/bin/bash
               yum update -y
               yum install -y httpd
@@ -313,12 +313,12 @@ resource "aws_instance" "web_1" {
 
 # Create Web Server 2
 resource "aws_instance" "web_2" {
-  ami               = data.aws_ami.amazon_linux.id
-  instance_type     = var.instance_type
-  subnet_id         = aws_subnet.public_2.id
-  key_name          = aws_key_pair.deployer.key_name
-  security_groups   = [aws_security_group.web.id]
-  user_data         = <<-EOF
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.public_2.id
+  key_name               = aws_key_pair.deployer.key_name
+  vpc_security_group_ids = [aws_security_group.web.id]
+  user_data              = <<-EOF
               #!/bin/bash
               yum update -y
               yum install -y httpd

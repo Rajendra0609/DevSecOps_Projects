@@ -1,8 +1,8 @@
 ## AUTOMATE INFRASTRUCTURE WITH IAC USING TERRAFORM PART 3
 #### REFACTOR YOUR PROJECT USING MODULES
 
-1. In the previous project our code was wriiten in a long list of files that created our resources. Even though it worked, this is however is not the best 
-way to manage your code as this would make your code diifcult to understand and future changes very difficult. In this project we would start with refactoring
+1. In the previous project our code was written in a long list of files that created our resources. Even though it worked, this is however is not the best 
+way to manage your code as this would make your code difficult to understand and future changes very difficult. In this project we would start with refactoring
 the project using Modules. A module allows you to create logical abstraction on the top of some resource set. In other words, a module allows you 
 to group resources together and reuse this group later, possibly many times.
 2. We start with breaking down the Terraform codes to have all resources in their respective modules. Combine resources of a similar type into directories 
@@ -14,9 +14,9 @@ is below:
   - ALB (For Apllication Load balancer and similar resources)
   - EFS (For Elastic file system resources)
   - RDS (For Databases resources)
-  - Autoscaling (For Autosacling and launch template resources)
+  - Autoscaling (For Autoscaling and launch template resources)
   - compute (For EC2 and rlated resources)
-  - VPC (For VPC and netowrking resources such as subnets, roles, e.t.c.)
+  - VPC (For VPC and networking resources such as subnets, roles, e.t.c.)
   - security (For creating security group resources)
 ```
 3. Each Module should have 2 more of the following files:
@@ -264,7 +264,7 @@ output "tooling-tgt" {
   value       = aws_lb_target_group.tooling-tgt.arn
 }
 ```
-- `variables.tf` - Use this to define the variables that were decalred within the module:
+- `variables.tf` - Use this to define the variables that were declared within the module:
 ```
 # Security group for external loadbalancer
 variable "public-sg"{
@@ -422,7 +422,7 @@ resource "aws_autoscaling_attachment" "asg_attachment_nginx" {
   alb_target_group_arn   = var.nginx-alb-tgt
 }
 ```
-- `asg-webserever.tf` - Create autoscaling for the Wordpress and Tooling applications slao making sure that variables are used in place of hard-coded values:
+- `asg-webserever.tf` - Create autoscaling for the Wordpress and Tooling applications also making sure that variables are used in place of hard-coded values:
 ```
 # ---- Autoscaling for wordpress application
 
@@ -483,7 +483,7 @@ resource "aws_autoscaling_attachment" "asg_attachment_tooling" {
   alb_target_group_arn   = var.tooling-alb-tgt
 }
 ```
-- `lt-bastion-nginx.tf` Create Launch templates for bastion and ngnix
+- `lt-bastion-nginx.tf` Create Launch templates for bastion and nginx
 ```
 # launch template for bastion
 
@@ -753,8 +753,8 @@ resource "aws_instance" "Jenkins" {
 }
 
 
-#create instance for sonbarqube
-resource "aws_instance" "sonbarqube" {
+#create instance for sonarqube
+resource "aws_instance" "sonarqube" {
   ami                         = var.ami-sonar
   instance_type               = "t2.medium"
   subnet_id                   = var.subnets-compute
@@ -766,7 +766,7 @@ resource "aws_instance" "sonbarqube" {
    tags = merge(
     var.tags,
     {
-      Name = "ACS-sonbarqube"
+      Name = "ACS-sonarqube"
     },
   )
 }
@@ -789,7 +789,7 @@ resource "aws_instance" "artifactory" {
   )
 }
 ```
-- `variables.tf` - To define the variables that are decalred within the compute module:
+- `variables.tf` - To define the variables that are declared within the compute module:
 ```
 variable "subnets-compute" {
     description = "public subnetes for compute instances"
@@ -804,7 +804,7 @@ variable "ami-jfrog" {
 }
 variable "ami-sonar" {
     type = string
-    description = "ami foir sonar"
+    description = "ami for sonar"
 }
 variable "sg-compute" {
     description = "security group for compute instances"
@@ -821,7 +821,7 @@ variable "tags" {
 }
 ```
 7. Create the following in the EFS module:
-- `efs.tf` - create key for Key management system, EFS and every other related resource here, declaring variables where neccessary:
+- `efs.tf` - create key for Key management system, EFS and every other related resource here, declaring variables where necessary:
 ```
 # create key from key management system
 resource "aws_kms_key" "ACS-kms" {
@@ -919,7 +919,7 @@ resource "aws_efs_access_point" "tooling" {
   }
 }
 ```
-- `variables.tf` - To define the variables that are decalred within the module:
+- `variables.tf` - To define the variables that are declared within the module:
 ```
 variable "efs-subnet-2" {
   description = "Second subnet for the mount target"
@@ -980,7 +980,7 @@ resource "aws_db_instance" "ACS-rds" {
   multi_az               = "true"
 }
 ```
-- `variables.tf` - To define the variables that are decalred within the RDS module:
+- `variables.tf` - To define the variables that are declared within the RDS module:
 ```
 variable "master-username" {
   type        = string
@@ -1010,7 +1010,7 @@ variable "tags" {
   default     = {}
 }
 ```
-9. For security module, craete:
+9. For security module, create:
 - `main.tf` - For repetitive blocks of code you can use **dynamic blocks** in Terraform. Copy the following to create security groups dynamically
 ```
 # create all security groups dynamically
@@ -1220,7 +1220,7 @@ output "datalayer-sg" {
   value = aws_security_group.ACS["datalayer-sg"].id
 }
 ```
-- `variables.tf` - To define the variables that are decalred within the module
+- `variables.tf` - To define the variables that are declared within the module
 ```
 variable "vpc_id" {
   type        = string
@@ -1489,7 +1489,7 @@ resource "aws_route_table_association" "public-subnets-assoc" {
   route_table_id = aws_route_table.public-rtb.id
 }
 ```
-- `variables.tf` - To define the variables that are decalred within the VPC module:
+- `variables.tf` - To define the variables that are declared within the VPC module:
 ```
 variable "region" {
 }
@@ -1630,7 +1630,7 @@ module "RDS" {
   private_subnets = [module.VPC.private_subnets-3, module.VPC.private_subnets-4]
 }
 
-# The Module creates instances for jenkins, sonarqube abd jfrog
+# The Module creates instances for jenkins, sonarqube and jfrog
 module "compute" {
   source          = "./modules/compute"
   ami-jenkins     = var.ami
@@ -1767,7 +1767,7 @@ provider "aws" {
 
 ### Backend on S3
 Create an S3 bucket to store Terraform state file. Note: S3 bucket names must be unique unique within a region partition. S3 stores the state as a given key in a given bucket on Amazon S3. This backend also supports state locking and consistency checking via Dynamo DB
-1. Create an S3 bucket in the main.tf file located in the root module and enable verionsing and encrption on the bucket with the following:
+1. Create an S3 bucket in the main.tf file located in the root module and enable versioning and encryption on the bucket with the following:
 ```
 ##creating bucket for s3 backend
 
@@ -1825,6 +1825,6 @@ terraform {
 ![pix9](https://user-images.githubusercontent.com/74002629/200835958-05387704-f520-42d3-b094-2f63bb4d5896.PNG)
 
 7. To end the project, remember to destroy every resource you created. But before you destory make sure to migrate the backend back to your local machine by running `terraform init -migrate-state`
-8. After maigrating the backend, run `terraform destroy` to destroy all the resources created.
+8. After migrating the backend, run `terraform destroy` to destroy all the resources created.
 
 

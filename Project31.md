@@ -312,7 +312,7 @@ services:
       - frontend
 
   api:
-    build: ./api
+    image: myregistry/api:latest  # Pre-built image required for Swarm (build: is not supported)
     environment:
       - DATABASE_URL=postgres://user:pass@db:5432/mydb
     deploy:
@@ -321,8 +321,8 @@ services:
     networks:
       - frontend
       - backend
-    depends_on:
-      - db
+    # Note: depends_on is not supported in Swarm mode stacks and is ignored.
+    # Use health checks and restart_policy to handle startup ordering.
 
   db:
     image: postgres:14

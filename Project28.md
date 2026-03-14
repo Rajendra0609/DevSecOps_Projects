@@ -97,7 +97,7 @@ def lambda_handler(event, context):
             'context': {
                 'function_name': context.function_name,
                 'memory_limit': context.memory_limit_in_mb,
-                'request_id': context.request_id,
+                'request_id': context.aws_request_id,
                 'log_stream': context.log_stream_name
             }
         })
@@ -150,7 +150,7 @@ bash
 aws apigateway create-rest-api \
     --name MyServerlessAPI \
     --description "Serverless REST API" \
-    --endpoint-configuration Types REGIONAL
+    --endpoint-configuration types=REGIONAL
 
 # Get API ID
 API_ID=$(aws apigateway get-rest-apis --query 'items[0].id' --output text)
@@ -256,7 +256,7 @@ def lambda_handler(event, context):
         },
         'body': json.dumps({
             'message': f'Hello, {name}!',
-            'requestId': context.request_id
+            'requestId': context.aws_request_id
         })
     }
 ```
@@ -927,7 +927,7 @@ def lambda_handler(event, context):
     
     # Start subsegment
     with xray_recorder.capture('process_request') as subsegment:
-        subsegment.put_annotation('request_id', context.request_id)
+        subsegment.put_annotation('request_id', context.aws_request_id)
         subsegment.put_metadata('event', event)
         
         # Your business logic

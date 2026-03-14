@@ -3,7 +3,7 @@
 ![1](https://user-images.githubusercontent.com/74002629/192497609-7c4c4583-ecfd-4f68-9b0a-b3bb3df7d91a.PNG)
 
 
-##### Prerequsites
+##### Prerequisites
 1. Servers: I will be making use of AWS virtual machines for this and will require 6 servers for the project which includes:
 - nginx server: This would act as the reverse proxy server to our site and tool. 
 - Jenkins server: To be used to implement your CI/CD workflows or pipelines. Select a t2.medium at least, Ubuntu 20.04 and Security group should be open to port 8080
@@ -11,7 +11,7 @@
 - -Artifactory server: To be used as the binary repository where the outcome of your build process is stored. Select a t2.medium at least and Security group should be open to port 8081
 - Database server: To server as the databse server for the Todo application
 - Todo webserver: To host the Todo web application.
-2. Secuirty groups: For the purposes of this project, you can have one security group that is open to all traffic. This should however not be attempted in a real DevOps enviroment.
+2. Security groups: For the purposes of this project, you can have one security group that is open to all traffic. This should however not be attempted in a real DevOps environment.
 3. Your Ansible inventory should look like this  
 ```
 ├── ci
@@ -22,9 +22,9 @@
 ├── sit
 └── uat
 ```
-focus will be mainly on the CI, Dev and Pentest enviroments 
+focus will be mainly on the CI, Dev and Pentest environments 
 
-4. Ansible roles for the CI environment. In addition to the previous Ansible roles from project 13, in your ansibile-config-mgt repo add 2 more roles: [Sonarqube](https://www.sonarqube.org/) and [Artifactory](https://jfrog.com/artifactory/).
+4. Ansible roles for the CI environment. In addition to the previous Ansible roles from project 13, in your ansible-config-mgt repo add 2 more roles: [Sonarqube](https://www.sonarqube.org/) and [Artifactory](https://jfrog.com/artifactory/).
 
 #### Phase 1
 ##### Prepare your Jenkins server
@@ -38,7 +38,7 @@ ssh-add <path-to-private-key>
 - Install git : `sudo apt install git`
 - Clone dwn the Asible-config-mgt repository: `git clone https://github.com/cynthia-okoduwa/ansible-config-mgt.git`
 - Install Jenkins and its dependencies. Steps to install Jenkins can be found [here](https://www.jenkins.io/doc/book/installing/)
-4. Configure Ansible For Jenkins Deployment. See [Project 9](https://github.com/cynthia-okoduwa/DevOps-projects/blob/main/Project9.md) for the initial setup of Jenkins. Here I will be comfiguring Jenkins to run Ansible commands in Jenkins UI.
+4. Configure Ansible For Jenkins Deployment. See [Project 9](https://github.com/cynthia-okoduwa/DevOps-projects/blob/main/Project9.md) for the initial setup of Jenkins. Here I will be configuring Jenkins to run Ansible commands in Jenkins UI.
 - Navigate to Jenkins URL: `<Jenkins-server-public-IP>:8080`
 - In the Jenkins dashboard, click on Manage Jenkins -> Manage plugins and search for Blue Ocean plugin. Install and open Blue Ocean plugin.
 ![pix1](https://user-images.githubusercontent.com/74002629/192139875-9d78fb62-afd5-4999-b8a8-0c40e5acca34.PNG)
@@ -49,7 +49,7 @@ ssh-add <path-to-private-key>
 - Select GitHub as where you store your code.
 ![pix3](https://user-images.githubusercontent.com/74002629/192139882-c6beac02-30eb-4a06-8206-41f087948fc4.PNG)
 
-- Create access token, then enter the newly create access token. Login to GitHub & generate an Access
+- Create access token, then enter the newly created access token. Login to GitHub & generate an Access
 ![pix4](https://user-images.githubusercontent.com/74002629/192139886-5f9d8281-2222-454a-9563-73711414fecc.PNG)
  
 - Copy Access token and paste in the new pipeline, then connect.
@@ -155,7 +155,7 @@ pipeline {
 
       stage('Run Ansible playbook') {
         steps {
-           ansiblePlaybook become: true, credentialsId: 'private-key', disableHostKeyChecking: true, installation: 'ansible', inventory: 'inventory/dev, playbook: 'playbooks/site.yml'
+           ansiblePlaybook become: true, credentialsId: 'private-key', disableHostKeyChecking: true, installation: 'ansible', inventory: 'inventory/dev', playbook: 'playbooks/site.yml'
          }
       }
 
@@ -224,7 +224,7 @@ pipeline {
 
 Our goal here is to deploy the Todo application onto servers directly from **Artifactory** rather than from **git**. 
 1. Updated Ansible with an Artifactory role, use this guide to create an Ansible role for Artifactory (ignore the Nginx part). [Configure Artifactory on Ubuntu 20.04](https://www.howtoforge.com/tutorial/ubuntu-jfrog/) 
-2. Now, open your web browser and type the URL https://. You will be redirected to the Jfrog Atrifactory page. Enter default username and password: admin/password. Once in create username and password and create your new repository. (Take note of the reopsitory name)
+2. Now, open your web browser and type the URL https://. You will be redirected to the Jfrog Atrifactory page. Enter default username and password: admin/password. Once in create username and password and create your new repository. (Take note of the repository name)
 ![pix23](https://user-images.githubusercontent.com/74002629/192488480-5562cbb1-d39e-4dfe-83e1-ced7b7113786.PNG)
 
 3. Next, fork the Todo repository below into your GitHub account
@@ -242,7 +242,7 @@ Our goal here is to deploy the Todo application onto servers directly from **Art
 ### Phase 2 – Integrate Artifactory repository with Jenkins
 1. In VScode create a new Jenkinsfile in the Todo repository
 2. Using Blue Ocean, create a multibranch Jenkins pipeline
-3. Istall my sql client: `sudo apt install mysql -y`
+3. Install mysql client: `sudo apt install mysql -y`
 4. Login into the DB-server(mysql server) and set the the bind address to 0.0.0.0: sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
 ![pix27](https://user-images.githubusercontent.com/74002629/192424564-bf94bce3-dd50-4753-88fb-35f297e8f15f.PNG)
 
@@ -262,7 +262,7 @@ DB_PASSWORD=sePret^i
 DB_CONNECTION=mysql 
 DB_PORT=3306
 ```
-8. Log into mysql from VScode: mysql -h 172.31.87.194 -u homestead -p (at the promot enter pasword)
+8. Log into mysql from VScode: mysql -h 172.31.87.194 -u homestead -p (at the prompt enter pasword)
 ![pix26](https://user-images.githubusercontent.com/74002629/192424380-386ee0af-aae6-4b6c-a8f5-31b8a35b63a7.PNG)
 
 9. Update Jenkinsfile with proper pipeline configuration. In the Checkout SCM stage ensure you specify the branch as main and change the git repository to yours.
@@ -400,11 +400,11 @@ stage ('Deploy to Dev Environment') {
     }
   }
 ```
-- This particular stage, once it completes the upload to arifactory, it would trigger a call to the your ansible-config-mgt/static-assignments/deployment.yml file and execute the instructions there. Ensure you update the "Download the artifact" instruction with your artifactory url_username and url_password for your artifactory repo. 
+- This particular stage, once it completes the upload to artifactory, it would trigger a call to the your ansible-config-mgt/static-assignments/deployment.yml file and execute the instructions there. Ensure you update the "Download the artifact" instruction with your artifactory url_username and url_password for your artifactory repo. 
 ![pix39](https://user-images.githubusercontent.com/74002629/192427578-055a05ed-233d-4183-b037-38c356870a58.PNG)
 
 8. Next we want to ensure that the code being deployed has the quality that meets corporate and customer requirements. We have implemented Unit Tests and Code Coverage Analysis with **phpunit** and **phploc**, we still need to implement [Quality Gate](https://docs.sonarqube.org/latest/user-guide/quality-gates/) to ensure that ONLY code with the required code coverage, and other quality standards make it through to the environments. To achieve this, we need to configure [SonarQube](https://docs.sonarqube.org/latest/) – An open-source platform developed by SonarSource for continuous inspection of code quality to perform automatic reviews with static analysis of code to detect bugs, code smells, and security vulnerabilities.
-9. Install SonarQube on Ubuntu 20.04 With PostgreSQL as Backend Database, Create Sonarqube roles. You can do this manaually or write a script with the directions below or go to [Ansible Galaxy](https://galaxy.ansible.com/search?deprecated=false&keywords=&order_by=-relevance) to find a sonarqube role
+9. Install SonarQube on Ubuntu 20.04 With PostgreSQL as Backend Database, Create Sonarqube roles. You can do this manually or write a script with the directions below or go to [Ansible Galaxy](https://galaxy.ansible.com/search?deprecated=false&keywords=&order_by=-relevance) to find a sonarqube role
 ![4](https://user-images.githubusercontent.com/74002629/192433173-4130fcd1-d6df-45cb-a6e0-6e7fdf3b6985.PNG)
 ![5](https://user-images.githubusercontent.com/74002629/192433188-64afa5fe-e1c5-4942-bffb-f1619de83756.PNG)
 ![6](https://user-images.githubusercontent.com/74002629/192433214-c7665fe5-8dfc-4bec-adb8-636aa4f30425.PNG)

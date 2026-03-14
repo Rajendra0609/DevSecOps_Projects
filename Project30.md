@@ -443,7 +443,7 @@ Parameters:
     Description: Master password
     MinLength: 8
     MaxLength: 41
-    AllowedPattern: '[a-zA-Z0-9]*+'
+    AllowedPattern: '[a-zA-Z0-9]+'
     ConstraintDescription: Must contain only alphanumeric characters
 
 Resources:
@@ -714,9 +714,9 @@ aws cloudformation create-stack-set \
 # Add stacks to stack set (across accounts)
 aws cloudformation create-stack-instances \
     --stack-set-name cross-account-vpc \
-    --accounts '["123456789012", "987654321098"]' \
+    --deployment-targets accounts='["123456789012","987654321098"]' \
     --regions '["us-east-1", "us-west-2"]' \
-    --deploymenttargets FAILURES_COUNT_SUPERSEDING
+    --operation-preferences FailureToleranceCount=1,MaxConcurrentCount=2
 
 # List stack instances
 aws cloudformation list-stack-instances \

@@ -719,18 +719,13 @@ services:
       - replica_data:/var/lib/postgresql/data
     networks:
       - postgres-cluster
-    command:
-      - "postgres"
-      - "-c"
-      - "hot_standby=on"
     depends_on:
       - postgres-primary
-    entrypoint: /bin/bash -c
+    entrypoint: ["/bin/bash", "-c"]
     command:
       - |
-        cp -r /var/lib/postgresql/data/* /var/lib/postgresql/data/ 2>/dev/null || true
         chown -R postgres:postgres /var/lib/postgresql/data
-        exec docker-entrypoint.sh postgres
+        exec docker-entrypoint.sh postgres -c hot_standby=on
 
 networks:
   postgres-cluster:

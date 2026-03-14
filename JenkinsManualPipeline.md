@@ -115,7 +115,7 @@ The next job is package, this job will compile the application and then generate
 
 ![Screenshot 2024-06-11 080731](https://github.com/cynthia-okoduwa/DevOps-projects/assets/74002629/87c92b6b-d2f3-4969-804a-7a13d32bd61f)
 
-5. You can publish or archive the jar file for future use. Configure the package from the **post build actions**, choose **archive the artifacts** and provide path `**target/*.jar` in the files to archive input field so that the jar file created at this path (e.g. sysfoo.war) is automatically archived/published.
+5. You can publish or archive the jar file for future use. Configure the package from the **post build actions**, choose **archive the artifacts** and provide path `**target/*.jar` in the files to archive input field so that the jar file created at this path (e.g. sysfoo.jar) is automatically archived/published.
 
 ![Screenshot 2024-06-15 103843](https://github.com/cynthia-okoduwa/DevOps-projects/assets/74002629/315fd76e-78be-4647-bccc-50fc7879ab30)
 

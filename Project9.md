@@ -95,13 +95,13 @@ Provide a private key (content of .pem file that you use to connect to NFS serve
 Name- NFS
 Hostname – can be private IP address of your NFS server
 Username – ec2-user (since NFS server is based on EC2 with RHEL 8)
-Remote directory – /mnt/apps since our Web Servers use it as a mointing point to retrieve files from the NFS server
+Remote directory – /mnt/apps since our Web Servers use it as a mounting point to retrieve files from the NFS server
 ```
 ![pix15](https://user-images.githubusercontent.com/74002629/184093450-be61c4f9-8214-4499-8db2-6dabafd1b954.PNG)
 
 8. Test the configuration and make sure the connection returns **Success** Remember, that TCP port 22 on NFS server must be open to receive SSH connections.
-9. Save the configuration and open your Jenkins job/project configuration page and add another one Post-build Action: **Set build actionds over SSH**
-10. Configure it to send all files probuced by the build into our previouslys define remote directory. In our case we want to copy all files and directories – so we use **
+9. Save the configuration and open your Jenkins job/project configuration page and add another one Post-build Action: **Set build actions over SSH**
+10. Configure it to send all files produced by the build into our previously defined remote directory. In our case we want to copy all files and directories – so we use **
 ![pix17](https://user-images.githubusercontent.com/74002629/184093471-5c12b087-5427-4c2a-b205-b7fb17f78de6.PNG)
 
 11. Save this configuration and go ahead, change something in **README.MD** file the GitHub Tooling repository.

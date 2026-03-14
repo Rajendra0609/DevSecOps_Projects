@@ -29,7 +29,6 @@ bash
 # Create ECS cluster with Fargate
 aws ecs create-cluster \
     --cluster-name my-fargate-cluster \
-    --cluster-configuration "executeCommandConfiguration={executionRoleName=ecsTaskExecutionRole,logging=DEFAULT}" \
     --settings "name=containerInsights,value=enabled"
 
 # List clusters
@@ -473,6 +472,24 @@ cat > scaling-policy.json <<EOF
         "metricAggregationType": "Average"
     }
 }
+EOF
+
+# Register the scaling target first
+aws application-autoscaling register-scalable-target \
+    --service-namespace ecs \
+    --resource-id service/my-fargate-cluster/nginx-service \
+    --scalable-dimension ecs:service:DesiredCount \
+    --min-capacity 1 \
+    --max-capacity 5
+
+# Apply the scaling policy
+aws application-autoscaling put-scaling-policy \
+    --service-namespace ecs \
+    --resource-id service/my-fargate-cluster/nginx-service \
+    --scalable-dimension ecs:service:DesiredCount \
+    --policy-name myapp-scaling-policy \
+    --policy-type StepScaling \
+    --step-scaling-policy-configuration file://scaling-policy.json
 ```
 
 ### Configure HPA for EKS

@@ -35,7 +35,7 @@ curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
   ![Project4pix7](https://user-images.githubusercontent.com/74002629/177740193-5d033df2-8d50-4c05-9b66-0c23eb6e4875.PNG)
   
   * Next we create the **Books** directory and navigate into it with the following command: `mkdir Books && cd Books` 
-  * Inside the Books directory initialize npm project and add a file to it with the following command: `npm init` Then add **sever.js** file with: `vi server.js`
+  * Inside the Books directory initialize npm project and add a file to it with the following command: `npm init` Then add **server.js** file with: `vi server.js`
   * In the server.js file, paste the following code:
   ```
   var express = require('express');
@@ -167,7 +167,7 @@ app.controller('myCtrl', function($scope, $http) {
 ![Project4pix13](https://user-images.githubusercontent.com/74002629/177742899-8172f3ca-bb34-4a30-815b-4bc76365d82b.PNG)
 
 * Also in **public** folder, create a file named **index.html**: `vi index.html`
-* And and paste the foloowing html code below into it: 
+* And and paste the following html code below into it: 
 ```
 <!doctype html>
 <html ng-app="myApp" ng-controller="myCtrl">
@@ -228,7 +228,7 @@ app.controller('myCtrl', function($scope, $http) {
  
 ![Project4pix15](https://user-images.githubusercontent.com/74002629/177742997-92f09460-b0e5-4e8f-8f60-e79a6a1dd314.PNG)
 
-* After several attempts at troubleshooting I figured out what the issue was. The issue was with my nodejs version. During the installation, I installed version 12 but for some reson version 12 won't work but keeps giving me errors when I attempt to start the sever.
+* After several attempts at troubleshooting I figured out what the issue was. The issue was with my nodejs version. During the installation, I installed version 12 but for some reason version 12 won't work but keeps giving me errors when I attempt to start the server.
 * I solved this problem by upgrading my node version to version, 17.0.0
 * After this I tried to start the server again and it ran successfully.
 

@@ -48,7 +48,7 @@ sudo mkdir /mnt/apps
 sudo mkdir /mnt/logs
 sudo mkdir /mnt/opt
 ```
-15. Mount to **/dev/webdata-vg/lv-apps** **/dev/webdata-vg/lv-apps** and **/dev/webdata-vg/lv-opt** respectievly : 
+15. Mount to **/dev/webdata-vg/lv-apps** **/dev/webdata-vg/lv-apps** and **/dev/webdata-vg/lv-opt** respectively : 
 ```
 sudo mount /dev/webdata-vg/lv-apps /mnt/apps
 sudo mount /dev/webdata-vg/lv-logs /mnt/logs
@@ -77,7 +77,7 @@ sudo chmod -R 777 /mnt/opt
 sudo systemctl restart nfs-server.service
 ```
 ![pix9](https://user-images.githubusercontent.com/74002629/183051442-69ca2423-75d4-4b3c-9ac1-afe5ee373b0b.PNG)
-19. In your choosen text editor, configure access to NFS for clients within the same subnet (my Subnet CIDR – 172.31.80.0/20 ):
+19. In your chosen text editor, configure access to NFS for clients within the same subnet (my Subnet CIDR – 172.31.80.0/20 ):
 ```
 sudo vi /etc/exports
 
@@ -99,14 +99,14 @@ sudo exportfs -arv
 3. Install mysql-server: `sudo apt install mysql-server -y`
 4. Create a database and name it **tooling**: 
 ```
-sudo my sql
+sudo mysql
 create database tooling;
 ```
 5. Create a database user and name it **webaccess** and grant permission to **webaccess** user on tooling database to do anything only 
 from the webservers subnet cidr:
 ```
 create user 'webaccess'@'172.31.80.0/20' identified by 'password';
-grant all privilleges on tooling.* to 'webaccess'@'172.31.80.0/20';
+grant all privileges on tooling.* to 'webaccess'@'172.31.80.0/20';
 flush privileges;
 ```
 6. To show database run: `show databases;`
@@ -166,6 +166,6 @@ INSERT INTO ‘users’ (‘id’, ‘username’, ‘password’, ’email’, 
 -> (1, ‘myuser’, ‘5f4dcc3b5aa765d61d8327deb882cf99’, ‘user@mail.com’, ‘admin’, ‘1’);
 ```
 ![pix16](https://user-images.githubusercontent.com/74002629/183053301-e021a287-f188-441e-96d0-022663e79a2d.PNG)
-Finally, open the website in your browser with the public IP of the webserver and make sure you can login into the websute with myuser user.
+Finally, open the website in your browser with the public IP of the webserver and make sure you can login into the website with myuser user.
 ![pix17](https://user-images.githubusercontent.com/74002629/183053304-87db560b-8cbb-448e-96e1-caae58c2f0c1.PNG)
 ![pix18](https://user-images.githubusercontent.com/74002629/183053318-df3c9915-a54d-46d2-b798-5f54e3d8bb43.PNG)

@@ -11,7 +11,7 @@ In continuation to [Project16](https://github.com/cynthia-okoduwa/DevOps-project
 2. For Identity and Access Management
 - IAM Roles for our instances to have access to certain resources
 - IAM Policies to be attached to the roles
-3. Other resouces to be created include:
+3. Other resources to be created include:
 - Security Groups
 - Target Group for Nginx, WordPress and Tooling
 - Certificate from AWS certificate manager
@@ -86,7 +86,7 @@ resource "aws_nat_gateway" "nat" {
 }
 ```
 #### Route tables
-1. Next, create a file called `route_tables.tf``` and inside it create routes for both public and private subnets, and a route for te the internet gateway, create the below resources. Ensure they are properly tagged.
+1. Next, create a file called `route_tables.tf``` and inside it create routes for both public and private subnets, and a route for the internet gateway, create the below resources. Ensure they are properly tagged.
 ```
 # create private route table
 resource "aws_route_table" "private-rtb" {
@@ -144,7 +144,7 @@ resource "aws_route_table_association" "public-subnets-assoc" {
 
 #### AWS IDENTITY AND ACCESS MANAGEMENT
 
-Our EC2 instances that we will be creating later will need to have access to some resources in our infrastucture, we want to pass an IAM role them as required by the architecture.
+Our EC2 instances that we will be creating later will need to have access to some resources in our infrastructure, we want to pass an IAM role them as required by the architecture.
 
 1. Create **AssumeRole**: Assume Role uses Security Token Service (STS) API that returns a set of temporary security credentials that you can use to access AWS resources that you might not normally have access to. These temporary credentials consist of an access key ID, a secret access key, and a security token. Typically, you use AssumeRole within your account or for cross-account access. Add the following code to a new file named roles.tf and tag appropriately.
 ```
@@ -296,7 +296,7 @@ resource "aws_security_group" "bastion_sg" {
 
 
 
-#security group for nginx reverse proxy, to allow access only from the extaernal load balancer and bastion instance
+#security group for nginx reverse proxy, to allow access only from the external load balancer and bastion instance
 resource "aws_security_group" "nginx-sg" {
   name   = "nginx-sg"
   vpc_id = aws_vpc.main.id
@@ -335,7 +335,7 @@ resource "aws_security_group_rule" "inbound-bastion-ssh" {
 }
 
 
-# security group for ialb, to have acces only from nginx reverser proxy server
+# security group for ialb, to have acces only from nginx reverse proxy server
 resource "aws_security_group" "int-alb-sg" {
   name   = "my-alb-sg"
   vpc_id = aws_vpc.main.id
@@ -406,7 +406,7 @@ resource "aws_security_group_rule" "inbound-web-ssh" {
 }
 
 
-# security group for datalayer to alow traffic from websever on nfs and mysql port and bastiopn host on mysql port
+# security group for datalayer to alow traffic from websever on nfs and mysql port and bastion host on mysql port
 resource "aws_security_group" "datalayer-sg" {
   name   = "datalayer-sg"
   vpc_id = aws_vpc.main.id
@@ -685,7 +685,7 @@ output "alb_target_group_arn" {
 ```
 #### Create Autoscaling groups
 Next, we will be creating Auto Scaling Group (ASG) to allow our architecture scale the EC2s in and out depending on the amount of traffic coming into our infrastructure. Before configuring an ASG, we need to create the launch template and the AMI the AGS needs. 
-Based on our architecture we need to create Auto-scaling groups for bastion, nginx, wordpress and tooling, so we will create two files; `asg-bastion-nginx.tf` will contain Launch template and austo-scaling group for Bastion and Nginx, then `asg-wordpress-tooling.tf` will contain Launch template and austo-scaling group for wordpress and tooling. Here are some useful Terraform documentation, to understand the arguements needed for each resources:
+Based on our architecture we need to create Auto-scaling groups for bastion, nginx, wordpress and tooling, so we will create two files; `asg-bastion-nginx.tf` will contain Launch template and auto-scaling group for Bastion and Nginx, then `asg-wordpress-tooling.tf` will contain Launch template and auto-scaling group for wordpress and tooling. Here are some useful Terraform documentation, to understand the arguements needed for each resources:
 [SNS-topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic),
 [SNS-notification](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_notification),
 [Austoscaling](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group),
@@ -822,7 +822,7 @@ resource "aws_launch_template" "nginx-launch-template" {
   user_data = filebase64("${path.module}/nginx.sh")
 }
 
-# ------ Autoscslaling group for reverse proxy nginx ---------
+# ------ Autoscaling group for reverse proxy nginx ---------
 
 resource "aws_autoscaling_group" "nginx-asg" {
   name                      = "nginx-asg"
@@ -1212,6 +1212,9 @@ variable "master-password" {
 }
 ```
 3. Then create another file and name it `terraform.tfvars` and give your declared variables value, like this:
+
+> ⚠️ **Note:** A `.tfvars` file uses simple `key = value` assignments only — NOT `variable { }` blocks. The code snippet below has been corrected to show the proper format.
+
 ```
 variable "region" {
   default = "us-east-1"

@@ -46,8 +46,7 @@ This project covers advanced Jenkins configuration including distributed builds 
 
 ### Understanding Executors
 
-```
-bash
+```bash
 # View executor status
 # In Jenkins UI: Manage Jenkins → System Information
 
@@ -65,8 +64,7 @@ Jenkins.instance.getNodes().each { node ->
 
 ### Set Up SSH Agent
 
-```
-bash
+```bash
 # On Agent Node: Install Java
 sudo apt update
 sudo apt install -y openjdk-11-jdk
@@ -85,8 +83,7 @@ chmod 600 ~/.ssh/authorized_keys
 
 ### Configure in Jenkins UI
 
-```
-bash
+```bash
 # Steps to add SSH Agent:
 # 1. Go to Manage Jenkins → Manage Nodes
 # 2. Click "New Node"
@@ -105,8 +102,7 @@ bash
 
 ### Configure via Jenkins Configuration as Code (JCasC)
 
-```
-yaml
+```yaml
 # jenkins.yaml
 jenkins:
   numExecutors: 4
@@ -145,8 +141,7 @@ jenkins:
 
 ### Docker Agent Configuration
 
-```
-bash
+```bash
 # Install Docker on agent machine
 sudo apt install -y docker.io
 sudo usermod -aG docker jenkins
@@ -158,8 +153,7 @@ docker network create jenkins-network
 
 ### Configure Docker Agent in Jenkins
 
-```
-bash
+```bash
 # Install Docker Pipeline plugin
 # Go to: Manage Jenkins → Manage Plugins → Available
 # Search and install: "Docker Pipeline"
@@ -171,8 +165,7 @@ bash
 
 ### Jenkinsfile with Docker Agent
 
-```
-groovy
+```groovy
 // Jenkinsfile with Docker Agent
 pipeline {
     agent {
@@ -201,8 +194,7 @@ pipeline {
 
 ### Using Custom Docker Image as Agent
 
-```
-groovy
+```groovy
 pipeline {
     agent {
         docker {
@@ -242,8 +234,7 @@ pipeline {
 
 ### Install Kubernetes Plugin
 
-```
-bash
+```bash
 # Install Kubernetes plugin
 # Go to: Manage Jenkins → Manage Plugins → Available
 # Search and install: "Kubernetes"
@@ -255,8 +246,7 @@ bash
 
 ### Configure Kubernetes Cloud
 
-```
-yaml
+```yaml
 # Kubernetes Plugin Configuration
 kubernetes:
   name: "kubernetes"
@@ -306,8 +296,7 @@ kubernetes:
 
 ### Jenkinsfile with Kubernetes Agent
 
-```
-groovy
+```groovy
 pipeline {
     agent {
         kubernetes {
@@ -356,8 +345,7 @@ pipeline {
 
 ### Using Labels
 
-```
-groovy
+```groovy
 // Jenkinsfile with specific label
 pipeline {
     agent {
@@ -408,8 +396,7 @@ pipeline {
 
 ### Matrix Project with Labels
 
-```
-groovy
+```groovy
 // Matrix project configuration
 matrix {
     axes {
@@ -441,8 +428,7 @@ matrix {
 
 ### Configure AWS EC2 Agents (EC2 Fleet)
 
-```
-bash
+```bash
 # Install EC2 Fleet Plugin
 # Go to: Manage Jenkins → Manage Plugins → Available
 # Search and install: "EC2 Fleet"
@@ -454,8 +440,7 @@ bash
 
 ### EC2 Fleet Configuration
 
-```
-yaml
+```yaml
 # EC2 Fleet Configuration
 ec2Fleet:
   name: "ec2-fleet"
@@ -498,8 +483,7 @@ ec2Fleet:
 
 ### Configure Azure Agents
 
-```
-bash
+```bash
 # Install Azure VM Agents Plugin
 # Go to: Manage Jenkins → Manage Plugins → Available
 # Search and install: "Azure VM Agents"
@@ -507,8 +491,7 @@ bash
 
 ### Azure VM Configuration
 
-```
-yaml
+```yaml
 # Azure VM Agents Configuration
 azure:
   name: "azure-agents"
@@ -554,8 +537,7 @@ azure:
 
 ### Configure Jenkins for High Availability
 
-```
-groovy
+```groovy
 // Install HA plugin and configure
 // Go to: Manage Jenkins → System
 // Configure: "Kubernetes HA"
@@ -576,8 +558,7 @@ pipeline {
 
 ### Backup Configuration
 
-```
-bash
+```bash
 # Install ThinBackup Plugin
 # Configure backup schedule
 
@@ -591,8 +572,7 @@ bash
 
 ### Restore Script
 
-```
-bash
+```bash
 #!/bin/bash
 # restore_jenkins.sh
 
@@ -619,8 +599,7 @@ echo "Restore complete!"
 
 ### Monitor Agents
 
-```
-groovy
+```groovy
 // Script to monitor agent status
 import hudson.model.*
 
@@ -649,8 +628,7 @@ def thread = Thread.start {
 
 ### Agent Health Check Script
 
-```
-groovy
+```groovy
 // Automated health check
 import hudson.model.*
 
@@ -682,8 +660,7 @@ checkAgents()
 
 ### Role-Based Access Control
 
-```
-bash
+```bash
 # Install Role-based Authorization Strategy
 # Go to: Manage Jenkins → Manage Plugins → Available
 # Install: "Role-based Authorization Strategy"
@@ -694,8 +671,7 @@ bash
 
 ### Manage Roles
 
-```
-groovy
+```groovy
 // Create roles via Jenkins Script Console
 import org.jenkinsci.plugins.rolestrategy.Role
 import org.jenkinsci.plugins.rolestrategy.RoleType
@@ -725,8 +701,7 @@ roleStrategy.assignRole(RoleType.Global, "dev-user", "developer")
 
 ### Matrix Authorization
 
-```
-yaml
+```yaml
 # Matrix Authorization Configuration
 jenkins:
   authorizationStrategy:
@@ -744,8 +719,7 @@ jenkins:
 
 ### Configure Executors
 
-```
-groovy
+```groovy
 // Optimize executor count
 // Master node should not run builds
 Jenkins.instance.numExecutors = 0
@@ -764,8 +738,7 @@ Jenkins.instance.nodes.each { node ->
 
 ### Resource Management
 
-```
-groovy
+```groovy
 // Monitor build resources
 def getBuildMetrics() {
     def builds = Jenkins.instance.getAllItems(Job.class).collectMany { job ->
@@ -786,8 +759,7 @@ getBuildMetrics()
 
 ### Build Queue Management
 
-```
-groovy
+```groovy
 // Manage build queue
 import hudson.model.Queue
 

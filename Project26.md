@@ -485,16 +485,18 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Setup Vault
+        id: secrets
         uses: hashicorp/vault-action@v2.6.0
         with:
           url: ${{ secrets.VAULT_ADDR }}
           token: ${{ secrets.VAULT_TOKEN }}
           secrets: |
-            secret/data/myapp config | jq -r '.data.data'
+            secret/data/myapp config.username | DB_USERNAME ;
+            secret/data/myapp config.password | DB_PASSWORD
       
       - name: Deploy application
         run: |
-          echo "Deploying with database password: ${{ steps.setup-vault.outputs.db_password }}"
+          echo "Deploying with database password: ${{ steps.secrets.outputs.DB_PASSWORD }}"
           # Deployment commands here
 ```
 

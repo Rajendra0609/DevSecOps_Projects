@@ -22,14 +22,14 @@ You will be required to register a new OAuth Application – follow the prompt a
 7. Configure variables. Terraform Cloud supports two types of variables: Environment variables and Terraform variables. Either type can be marked as sensitive, 
 to prevents them from being displayed in the Terraform Cloud web UI and makes them write-only. We will set two environment variables: **AWS_ACCESS_KEY_ID** and 
 **AWS_SECRET_ACCESS_KEY**, set the values that you used in Project 16. These credentials will be used to provision your AWS infrastructure by Terraform Cloud.
-For the Terraform variables instead entering each variable we have created in our `variables.tfvars` file here, simply change the file name from `variables.tfvars` to `variables.auto.tfvars` in the terraform-cloud directory structure. Terraform cloud will automatically pick the vaules in the file directly.
+For the Terraform variables instead entering each variable we have created in our `variables.tfvars` file here, simply change the file name from `variables.tfvars` to `variables.auto.tfvars` in the terraform-cloud directory structure. Terraform cloud will automatically pick the values in the file directly.
 After you have set the 2 variables – your Terraform Cloud is all set to apply the codes from GitHub and create all necessary AWS resources.
-8. Now it is time to run our Terrafrom scripts, we would be using Packer to build our images in this project, and Ansible to configure the infrastructure, so for that 
-we would be making changes to our our existing respository from [Project 18](https://github.com/cynthia-okoduwa/DevOps-projects/blob/main/Project18.md). Add the following folders in your code structure:
+8. Now it is time to run our Terraform scripts, we would be using Packer to build our images in this project, and Ansible to configure the infrastructure, so for that 
+we would be making changes to our existing repository from [Project 18](https://github.com/cynthia-okoduwa/DevOps-projects/blob/main/Project18.md). Add the following folders in your code structure:
 - AMI: for building packer images
-- Ansible: for Ansible scripts to configure the infrastucture
+- Ansible: for Ansible scripts to configure the infrastructure
 9. Install the following tools on your local machine:
-- [Packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli) To create custom images that are immutable and prodduction ready.
+- [Packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli) To create custom images that are immutable and production ready.
 - [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) for your server configuration.
 
 #### Create AMI using Packer
@@ -217,7 +217,7 @@ build {
 11. Push all your changes to the `terraform-cloud` repository.
 12. Next in the Terraform cloud UI, run your first plan, if all goes well, run Apply. You will see your AWS resources being created.
 ![Pix2](https://user-images.githubusercontent.com/74002629/203728085-305eb60b-fa6b-433b-8f46-c88377f42ad3.PNG)
-13. You have successfully created your resources using Terraform cloud. When you go into your AWS console you should see all the resources you have created, however our instances in the target group have failed health checks, beacause we have not configured the instances. Let's fix that.
+13. You have successfully created your resources using Terraform cloud. When you go into your AWS console you should see all the resources you have created, however our instances in the target group have failed health checks, because we have not configured the instances. Let's fix that.
 14. In our terraform code, remove the instances as listeners and attachment to auto scaling groups. Comment out the nginx, loadbalancer and tooling listeners in the ALB module of your terraform code. and also comment out the attachment of autoscaling groups to the load balancers in the Autoscaling module of your terraform code. We are doing this to prevent issues till we have run our configurations, then we can reapply them.
 15. Push your changes and Terraform cloud with Plan and Apply automatically
 
@@ -225,17 +225,17 @@ build {
 1. Next we would be updating the Ansible script with values from terraform output. 
 2. SSH into your Bastion server using SSH agent and clone down your repository.
 3. Ansible will need to have access to your AWS accout to pull down the IP addresses of your instances, we will need to give Ansible access. Enter `aws configure` in your ansible directory, then follow the prompt and provide your secret key and access key to give Ansible access.
-4. Ensure Ansible can pull down the required IPs by runing: `ansible-inventory -i invetory/aws.ec2.yml --graph` 
-5. Update the nginx role with DNS name for the laodbalancer. Go into your loadbalancer in your AWS console and copy the DNS name for the loadbalance and paste it in the nginx role.
+4. Ensure Ansible can pull down the required IPs by running: `ansible-inventory -i inventory/aws.ec2.yml --graph` 
+5. Update the nginx role with DNS name for the load balancer. Go into your loadbalancer in your AWS console and copy the DNS name for the load balancer and paste it in the nginx role.
 6. Next update the RDS end-point in the tooling/tasks/setup-db.yml  and wordpress/tasks/setup-db.yml files (You get this from your AWS console from the RDS you provisioned) Update it for the database and tooling credentials.
 7. Also update your username name and password to correspond to what you have in your terraform.auto.tfvars
 8. Next, update the access points of your filesystem for both the tooling and the wordpress site. it is located in `Ansible/roles/tooling/tasks/main.yml` and `Ansible/roles/wordpress/tasks/main.yml` respectively.
 9. In the Ansible folder, create an ansible.cfg file and specify your roles path to allow Ansible find the roles when it runs, then run `export ANSIBLE_CONFIG=<path to your ansible.cfg file>` in the terminal to tell ansible where to find the roles
-10. Now run Ansible playbook against your environment. `ansible-playbook -i invetory/aws.ec2.yml playbooks/site.yml` If all goes well, you should see your playbook running.
+10. Now run Ansible playbook against your environment. `ansible-playbook -i inventory/aws.ec2.yml playbooks/site.yml` If all goes well, you should see your playbook running.
 11. Now we get into your Bastion server via SSH agent. Type `ssh -A ec2-user@<Bastion-Public-IP>` and from inside the bastion we can get into the other servers in the architecture.
-12. To get into the other servers from the Bastion using SSH agent, enter the command `ssh ec2-user@<Private-IP-of-target-server>
-13. Once inside your Nginx server run `sudo systemctl status nginx` to verify the server is running, the `sudo vi /etc/nginx/nginx.conf` to verify everything was configured correctly.
-14. SSH into your tooling and wordpress servers respectively and run `df -h` to verify that the filesystem was successfully mounted and `sudo systemctl status httpd` to verif Apache is running.
+12. To get into the other servers from the Bastion using SSH agent, enter the command `ssh ec2-user@<Private-IP-of-target-server>`
+13. Once inside your Nginx server run `sudo systemctl status nginx` to verify the server is running, then `sudo vi /etc/nginx/nginx.conf` to verify everything was configured correctly.
+14. SSH into your tooling and wordpress servers respectively and run `df -h` to verify that the filesystem was successfully mounted and `sudo systemctl status httpd` to verify Apache is running.
 15. in each server run change directory to `cd /var/www/html/` to see the health status of your servers, and `curl localhost` to see the webserver running in your local machine.
 
 

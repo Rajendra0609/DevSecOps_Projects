@@ -681,9 +681,26 @@ istioctl dashboard kiali
 
 ```
 bash
-# Resource limits
-kubectl limitrange default-mem-limit --mem-hard=1Gi --cpu-hard=2000m -n default
-kubectl limitrange default-mem-request --mem-request=100Mi --cpu-request=100m -n default
+# Resource limits - apply a LimitRange manifest (kubectl limitrange is not a valid command)
+kubectl apply -f - <<EOF_YAML
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: default-resource-limits
+  namespace: default
+spec:
+  limits:
+  - type: Container
+    max:
+      memory: "1Gi"
+      cpu: "2000m"
+    default:
+      memory: "256Mi"
+      cpu: "500m"
+    defaultRequest:
+      memory: "100Mi"
+      cpu: "100m"
+EOF_YAML
 
 # Resource quotas
 kubectl create quota my-quota \

@@ -46,7 +46,7 @@ sudo systemctl restart apache2
 * The load balancer accepts the traffic and distributes it between the servers according to the method that was specified.
 10. In Project-7 I had mounted **/var/log/httpd/** from the Web Servers to the NFS server, here I shall unmount them and give each Web Server has its own log directory: `sudo umount -f /var/log/httpd`
 11. Open two ssh/Putty consoles for both Web Servers and run following command: `sudo tail -f /var/log/httpd/access_log`
-12.  Refresh the browser page `http://172.31.95.118/index.php` with the load balancer public IP several times and make sure that both servers receive HTTP GET requests from your LB – new records will appear in each server’s log file. The number of requests to each server will be approximately the same since we set loadfactor to the same value for both servers – it means that traffic will be disctributed evenly between them.
+12.  Refresh the browser page `http://172.31.95.118/index.php` with the load balancer public IP several times and make sure that both servers receive HTTP GET requests from your LB – new records will appear in each server’s log file. The number of requests to each server will be approximately the same since we set loadfactor to the same value for both servers – it means that traffic will be distributed evenly between them.
 ![pix4](https://user-images.githubusercontent.com/74002629/183334734-dbae496e-d27d-49f4-b01e-850eb49fd9ba.PNG)
 ![pix5](https://user-images.githubusercontent.com/74002629/183334749-4f5c17f2-c9e9-4034-9e6e-72e7dbab65ff.PNG)
 

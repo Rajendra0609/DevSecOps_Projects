@@ -250,9 +250,10 @@ upstream backend {
     server backend2.example.com;
 }
 
-# Least Time (NGINX Plus)
+# Least Time (NGINX Plus only - requires commercial license)
+# For open-source NGINX, use least_conn instead:
 upstream backend {
-    least_time header;
+    least_conn;
     server backend1.example.com;
     server backend2.example.com;
 }
@@ -705,19 +706,17 @@ server {
     ssl_certificate /etc/ssl/certs/server.crt;
     ssl_certificate_key /etc/ssl/private/server.key;
     
-    # HTTP/2
+    # HTTP/2 Server Push via Link response headers
     http2_push_preload on;
     
     # Push resources
     location / {
         proxy_pass http://localhost:3000;
         
-        # Push CSS
-        link: </css/styles.css>; as=style;
-        # Push JS
-        link: </js/app.js>; as=script;
-        # Push images
-        link: </images/logo.png>; as=image;
+        # Use add_header to send Link preload headers for HTTP/2 Server Push
+        add_header Link '</css/styles.css>; rel=preload; as=style' always;
+        add_header Link '</js/app.js>; rel=preload; as=script' always;
+        add_header Link '</images/logo.png>; rel=preload; as=image' always;
     }
 }
 ```
@@ -726,8 +725,18 @@ server {
 
 ```
 nginx
-# Block specific User-Agent
-if ($http_user_agent ~* (Python-urllib|wget|curl)) {
+# Block specific User-Agents using a map block (if is evil in NGINX location context)
+# Add this map block inside the http {} context in nginx.conf:
+#
+#   map $http_user_agent $blocked_agent {
+#       default         0;
+#       ~*Python-urllib 1;
+#       ~*wget          1;
+#       ~*curl          1;
+#   }
+#
+# Then inside the server block:
+if ($blocked_agent) {
     return 403;
 }
 

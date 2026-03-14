@@ -1,10 +1,10 @@
 # LOAD BALANCER SOLUTION WITH NGINX AND SSL/TLS
 
-In this project, we will solidify our knowledge of load balancers and make us versatile in our knowledge of configuring a different type of LB. We will configure an Nginx Load Balancer solution and also register our website with LetsEnrcypt Certificate Authority, to automate certificate issuance. 
+In this project, we will solidify our knowledge of load balancers and make us versatile in our knowledge of configuring a different type of LB. We will configure an Nginx Load Balancer solution and also register our website with LetsEncrypt Certificate Authority, to automate certificate issuance. 
 
-A certificate is a security technology that protects connection from MITM attacks by creating an encrypted session between browser and Web server. In our project we will use a shell client recommended by LetsEncrypt – cetrbot.
+A certificate is a security technology that protects connection from MITM attacks by creating an encrypted session between browser and Web server. In our project we will use a shell client recommended by LetsEncrypt – certbot.
 
-Our achitecture will look something like this:
+Our architecture will look something like this:
 
 ![pix18](https://user-images.githubusercontent.com/74002629/184848922-0b777f13-bef5-4361-9a97-a3996c451f3e.PNG)
 
@@ -67,7 +67,7 @@ sudo systemctl status nginx
 10. Install certbot: `sudo apt install certbot -y`
 12. Request your certificate (just follow the certbot instructions – you will need to choose which domain you want your certificate to be issued for, domain name will be looked up from nginx.conf file so make sure you have updated it on step 4).
 ```
-sudo certbot --nginx -d biuldwithme.link -d www.buildwithme.link
+sudo certbot --nginx -d buildwithme.link -d www.buildwithme.link
 ```
 ![pix12](https://user-images.githubusercontent.com/74002629/184856111-572b3705-6232-4b20-ae1a-c85534e8fb1a.PNG)
 

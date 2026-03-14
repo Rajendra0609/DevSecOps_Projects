@@ -206,7 +206,7 @@ ansible-playbook playbooks/webserver.yml --check
 ```
 bash
 # Create security hardening playbook
-cat > playbooks/security hardening.yml <<EOF
+cat > playbooks/security_hardening.yml <<EOF
 ---
 - name: Security Hardening
   hosts: all
@@ -313,12 +313,6 @@ cat > roles/common/tasks/main.yml <<EOF
   apt:
     name: "{{ common_packages }}"
     state: present
-  loop:
-    - curl
-    - wget
-    - git
-    - vim
-    - htop
 
 - name: Set timezone
   timezone:
@@ -385,7 +379,7 @@ EOF
 cat > inventory.aws_ec2.yml <<EOF
 plugin: aws_ec2
 aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
-aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY')') }}"
+aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
 regions:
   - us-east-1
   - us-west-2
@@ -488,14 +482,14 @@ pipeline {
         }
         
         stage('Deploy to Staging') {
-            when { branch == 'develop' }
+            when { branch 'develop' }
             steps {
                 sh 'ansible-playbook playbooks/site.yml --tags staging'
             }
         }
         
         stage('Deploy to Production') {
-            when { branch == 'main' }
+            when { branch 'main' }
             steps {
                 withCredentials([string(credentialsId: 'vault-password', variable: 'VAULT_PASS')]) {
                     sh 'ansible-playbook playbooks/site.yml --ask-vault-pass --tags production'

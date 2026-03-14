@@ -187,32 +187,32 @@ CREATE TABLE audit_log (
 
 -- Create trigger for audit
 CREATE OR REPLACE FUNCTION audit_trigger_function()
-RETURNS EVENT AS $$
+RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
         INSERT INTO audit_log (session_id, session_seq, statement_id, classid, objid, objsubid, command_tag, object_type, object_identity, statement, parameter)
-        VALUES (current_setting('pg_audit.session_id')::BIGINT,
-                current_setting('pg_audit.statement_id')::BIGINT,
-                current_setting('pg_audit.substatement_id')::BIGINT,
-                TG_classid, TG_relid, TG_natts,
-                TG_OP, TG_relkind::TEXT, TG_relname,
-                current_query(), NEW.*::TEXT);
+        VALUES (pg_backend_pid(),
+                txid_current(),
+                EXTRACT(EPOCH FROM clock_timestamp())::BIGINT,
+                TG_relid, TG_relid, TG_nargs,
+                TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME,
+                current_query(), row_to_json(NEW)::TEXT);
     ELSIF TG_OP = 'UPDATE' THEN
         INSERT INTO audit_log (session_id, session_seq, statement_id, classid, objid, objsubid, command_tag, object_type, object_identity, statement, parameter)
-        VALUES (current_setting('pg_audit.session_id')::BIGINT,
-                current_setting('pg_audit.statement_id')::BIGINT,
-                current_setting('pg_audit.substatement_id')::BIGINT,
-                TG_classid, TG_relid, TG_natts,
-                TG_OP, TG_relkind::TEXT, TG_relname,
-                current_query(), NEW.*::TEXT);
+        VALUES (pg_backend_pid(),
+                txid_current(),
+                EXTRACT(EPOCH FROM clock_timestamp())::BIGINT,
+                TG_relid, TG_relid, TG_nargs,
+                TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME,
+                current_query(), row_to_json(NEW)::TEXT);
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO audit_log (session_id, session_seq, statement_id, classid, objid, objsubid, command_tag, object_type, object_identity, statement, parameter)
-        VALUES (current_setting('pg_audit.session_id')::BIGINT,
-                current_setting('pg_audit.statement_id')::BIGINT,
-                current_setting('pg_audit.substatement_id')::BIGINT,
-                TG_classid, TG_relid, TG_natts,
-                TG_OP, TG_relkind::TEXT, TG_relname,
-                current_query(), OLD.*::TEXT);
+        VALUES (pg_backend_pid(),
+                txid_current(),
+                EXTRACT(EPOCH FROM clock_timestamp())::BIGINT,
+                TG_relid, TG_relid, TG_nargs,
+                TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME,
+                current_query(), row_to_json(OLD)::TEXT);
     END IF;
     RETURN NULL;
 END;
@@ -876,7 +876,7 @@ else
 fi
 
 # 6. Check pgaudit extension
-if sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw pgaudit; then
+if sudo -u postgres psql -t -c "SELECT extname FROM pg_extension WHERE extname = 'pgaudit';" | grep -q pgaudit; then
     echo "[PASS] pgAudit extension is installed"
     ((PASS++))
 else

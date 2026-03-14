@@ -465,7 +465,7 @@ aws sso-admin create-permission-set \
     --instance-arn <instance-arn> \
     --name DeveloperAccess \
     --session-duration 28800 \
-    -- RelayState "urn:amzn:homeRegion:us-east-1"
+    --relay-state "urn:amzn:homeRegion:us-east-1"
 
 # Get managed policy ARN
 aws sso-admin list-managed-policies-in-permission-set \
@@ -498,7 +498,7 @@ aws s3 mb s3://my-cloudtrail-logs-bucket
 
 # Enable versioning
 aws s3api put-bucket-versioning \
-    --bucket my-cloudTrail-logs-bucket \
+    --bucket my-cloudtrail-logs-bucket \
     --versioning-configuration Status=Enabled
 
 # Create trail
@@ -560,8 +560,7 @@ bash
 # Enable AWS Config
 aws configservice put-configuration-recorder \
     --configuration-recorder name=default \
-    --role-region us-east-1 \
-    --recording-group allResources
+    --recording-group '{"allSupported":true,"includeGlobalResourceTypes":true}'
 
 # Create conformance pack
 cat > iam-conformance-pack.yaml <<EOF

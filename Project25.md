@@ -263,7 +263,7 @@ stage('OWASP ZAP Scan') {
             sleep 60
             
             # Generate JSON report
-            curl http://localhost:8080/JSON/report/authenticted/report/ -o zap-report.json || true
+            curl http://localhost:8080/JSON/report/standard/report/ -o zap-report.json || true
             
             # Stop ZAP container
             docker stop zap
@@ -337,7 +337,7 @@ stage('Container Security Scan') {
             trivy image --severity HIGH,CRITICAL --exit-code 1 myapp:latest || true
             
             # Scan filesystem
-            trivy fs --security-checks vuln,config trivy-fs-report.json . || true
+            trivy fs --scanners vuln,config --output trivy-fs-report.json . || true
         '''
     }
     post {
