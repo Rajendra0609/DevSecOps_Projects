@@ -127,6 +127,12 @@ All DevOps related projects
    - Ansible
    - Helm
 
+#############################################################################################################################
+
+Jenkins Study Plan
+
+[text](jenkins_4day_plan.html)
+
 ## Contributing
 
 Feel free to contribute by creating issues or pull requests.

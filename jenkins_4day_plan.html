@@ -1,0 +1,273 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1rem 0;font-family:var(--font-sans)}
+.day{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:1rem;overflow:hidden}
+.day-head{padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.day-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.day-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.day-sub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+.slots{padding:10px 16px;display:flex;flex-direction:column;gap:8px}
+.slot{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:start}
+.slot-time{font-size:11px;color:var(--color-text-tertiary);padding-top:2px}
+.slot-body{display:flex;flex-direction:column;gap:4px}
+.slot-label{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.tasks{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.task{font-size:11px;padding:2px 8px;border-radius:var(--border-radius-md);border:0.5px solid}
+.study{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+.practice{background:var(--color-background-success);color:var(--color-text-success);border-color:var(--color-border-success)}
+.warn{background:var(--color-background-warning);color:var(--color-text-warning);border-color:var(--color-border-warning)}
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:2px 0}
+.footer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:1rem 0 0}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 14px;text-align:center}
+.stat-n{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.stat-l{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.condition{border:0.5px solid var(--color-border-warning);border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:var(--color-text-warning);background:var(--color-background-warning)}
+.condition b{font-weight:500}
+</style>
+
+<div class="wrap">
+
+<div class="condition">
+  <b>This plan works if:</b> you know Linux CLI + Docker basics + Git. If Jenkins is your very first DevOps tool, add 2 more days.
+</div>
+
+<!-- Day 1 -->
+<div class="day">
+  <div class="day-head" style="background:var(--color-background-info)">
+    <div class="day-num" style="background:#B5D4F4;color:#0C447C">D1</div>
+    <div>
+      <div class="day-title">Day 1 — Foundation (JenkinsAdminGuide.md)</div>
+      <div class="day-sub">Goal: Jenkins running, secured, and backed up by end of day</div>
+    </div>
+  </div>
+  <div class="slots">
+    <div class="slot">
+      <div class="slot-time">Morning<br>9 am – 12 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Study: installation + initial config</div>
+        <div class="tasks">
+          <span class="task study">Docker install method</span>
+          <span class="task study">Setup wizard</span>
+          <span class="task study">User management</span>
+          <span class="task study">Plugin manager</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Afternoon<br>1 pm – 4 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Practice: hands-on setup</div>
+        <div class="tasks">
+          <span class="task practice">Run Jenkins via Docker Compose</span>
+          <span class="task practice">Create admin user</span>
+          <span class="task practice">Install 5 plugins</span>
+          <span class="task practice">Run backup script</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Evening<br>5 pm – 7 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Study: JCasC + Script Console</div>
+        <div class="tasks">
+          <span class="task study">JCasC yaml config</span>
+          <span class="task study">Security hardening</span>
+          <span class="task practice">Write 1 JCasC file</span>
+          <span class="task practice">Run system info script</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Day 2 -->
+<div class="day">
+  <div class="day-head" style="background:var(--color-background-secondary)">
+    <div class="day-num" style="background:#CECBF6;color:#3C3489">D2</div>
+    <div>
+      <div class="day-title">Day 2 — Manual Pipeline + Pipeline as Code (Files 2 & 3)</div>
+      <div class="day-sub">Goal: build→test→package running as both Freestyle and Jenkinsfile</div>
+    </div>
+  </div>
+  <div class="slots">
+    <div class="slot">
+      <div class="slot-time">Morning<br>9 am – 11 am</div>
+      <div class="slot-body">
+        <div class="slot-label">Study + Practice: Manual Pipeline (File 2)</div>
+        <div class="tasks">
+          <span class="task study">Freestyle job setup</span>
+          <span class="task study">Maven goals</span>
+          <span class="task practice">Create Build + Test + Package jobs</span>
+          <span class="task practice">Link upstream/downstream</span>
+          <span class="task practice">Archive versioned jar</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Midday<br>11 am – 1 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Study: Pipeline as Code syntax (File 3)</div>
+        <div class="tasks">
+          <span class="task study">Declarative skeleton</span>
+          <span class="task study">agent / stages / post</span>
+          <span class="task study">environment + credentials</span>
+          <span class="task study">when / parallel</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Afternoon<br>2 pm – 6 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Practice: write Jenkinsfile for same Maven app</div>
+        <div class="tasks">
+          <span class="task practice">Declarative pipeline with 4 stages</span>
+          <span class="task practice">Add parallel quality gates</span>
+          <span class="task practice">Use withCredentials for secrets</span>
+          <span class="task practice">Set up Multibranch Pipeline job</span>
+          <span class="task warn">Write 1 simple Shared Library step in vars/</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Day 3 -->
+<div class="day">
+  <div class="day-head" style="background:var(--color-background-secondary)">
+    <div class="day-num" style="background:#FAC775;color:#633806">D3</div>
+    <div>
+      <div class="day-title">Day 3 — Nodes & Agents (File 4)</div>
+      <div class="day-sub">Goal: pipeline running on a Docker agent, controller executors = 0</div>
+    </div>
+  </div>
+  <div class="slots">
+    <div class="slot">
+      <div class="slot-time">Morning<br>9 am – 11 am</div>
+      <div class="slot-body">
+        <div class="slot-label">Study: agent types + architecture</div>
+        <div class="tasks">
+          <span class="task study">Master vs agent roles</span>
+          <span class="task study">SSH launch vs JNLP</span>
+          <span class="task study">Labels and routing</span>
+          <span class="task study">Kubernetes pod templates</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Afternoon<br>11 am – 4 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Practice: connect real agents</div>
+        <div class="tasks">
+          <span class="task practice">Add Docker agent via SSH</span>
+          <span class="task practice">Label it linux + docker</span>
+          <span class="task practice">Run Day 2 Jenkinsfile on it</span>
+          <span class="task practice">Set controller executors to 0</span>
+          <span class="task warn">Try Kubernetes agent if cluster available</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Evening<br>4 pm – 6 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Study + practice: agent monitoring</div>
+        <div class="tasks">
+          <span class="task study">Ephemeral agents concept</span>
+          <span class="task study">Build promotion pattern</span>
+          <span class="task practice">Run agent health check Groovy script</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Day 4 -->
+<div class="day">
+  <div class="day-head" style="background:var(--color-background-secondary)">
+    <div class="day-num" style="background:#F5C4B3;color:#712B13">D4</div>
+    <div>
+      <div class="day-title">Day 4 — Advanced Topics (File 5) + Review</div>
+      <div class="day-sub">Goal: REST API trigger working, one deployment strategy implemented, interview Q&A revised</div>
+    </div>
+  </div>
+  <div class="slots">
+    <div class="slot">
+      <div class="slot-time">Morning<br>9 am – 11 am</div>
+      <div class="slot-body">
+        <div class="slot-label">Study + practice: REST API + CLI</div>
+        <div class="tasks">
+          <span class="task study">Crumb / CSRF flow</span>
+          <span class="task practice">Trigger build via curl</span>
+          <span class="task practice">Poll until done script</span>
+          <span class="task practice">3 CLI commands</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Midday<br>11 am – 1 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Study + practice: Job DSL + linting</div>
+        <div class="tasks">
+          <span class="task study">Seed job concept</span>
+          <span class="task practice">Write DSL to generate 2 pipeline jobs</span>
+          <span class="task practice">Validate a Jenkinsfile via REST API linter</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Afternoon<br>2 pm – 4 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Study: deployment strategies + anti-patterns</div>
+        <div class="tasks">
+          <span class="task study">Blue-Green logic</span>
+          <span class="task study">Canary logic</span>
+          <span class="task study">10 anti-patterns list</span>
+          <span class="task warn">Terraform pipeline optional</span>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="slot">
+      <div class="slot-time">Evening<br>4 pm – 6 pm</div>
+      <div class="slot-body">
+        <div class="slot-label">Final review — all interview Q&amp;A</div>
+        <div class="tasks">
+          <span class="task study">Admin Q&amp;A (10 Qs)</span>
+          <span class="task study">Nodes Q&amp;A (10 Qs)</span>
+          <span class="task study">Pipeline Q&amp;A (10 Qs)</span>
+          <span class="task study">Advanced Q&amp;A</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer stats -->
+<div class="footer">
+  <div class="stat">
+    <div class="stat-n">8–9 hrs</div>
+    <div class="stat-l">per day needed</div>
+  </div>
+  <div class="stat">
+    <div class="stat-n">60 / 40</div>
+    <div class="stat-l">practice vs study ratio</div>
+  </div>
+  <div class="stat">
+    <div class="stat-n">Day 2</div>
+    <div class="stat-l">hardest day — two files</div>
+  </div>
+</div>
+
+</div>
+<script>
+document.querySelectorAll('.task.warn').forEach(t => {
+  t.title = 'Optional — skip if short on time';
+});
+</script>
