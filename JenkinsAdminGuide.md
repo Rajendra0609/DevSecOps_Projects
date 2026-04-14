@@ -864,3 +864,200 @@ This project covers:
 - [Jenkins Script Console](https://www.jenkins.io/doc/book/managing/script-console/)
 - [Jenkins Plugins](https://plugins.jenkins.io/)
 - [JCasC Documentation](https://jenkins.io/projects/jcasc/)
+
+---
+
+## Step 13: Secrets Management with HashiCorp Vault
+
+In enterprise environments, storing secrets directly in Jenkins Credentials is acceptable for smaller teams, but as the organisation scales, a dedicated secrets manager provides better rotation, auditing, and access policies. HashiCorp Vault is the most widely used solution in DevSecOps organisations.
+
+### Install and Configure the Vault Plugin
+
+```bash
+# Install HashiCorp Vault Plugin
+# Manage Jenkins → Manage Plugins → Available
+# Search: "HashiCorp Vault"
+# Install without restart
+```
+
+```yaml
+# JCasC: Configure Vault globally
+unclassified:
+  hashicorpVault:
+    configuration:
+      vaultUrl: "https://vault.example.com"
+      vaultCredentialId: "vault-approle-credentials"  # AppRole token stored in Jenkins
+      engineVersion: 2
+      timeout: 60
+      skipSslVerification: false
+```
+
+### AppRole Authentication (Recommended for CI/CD)
+
+```bash
+# On the Vault server: enable AppRole auth
+vault auth enable approle
+
+# Create a policy for Jenkins
+vault policy write jenkins-policy - <<EOF
+path "secret/data/myapp/*" {
+  capabilities = ["read"]
+}
+path "secret/data/shared/*" {
+  capabilities = ["read"]
+}
+EOF
+
+# Create an AppRole for Jenkins
+vault write auth/approle/role/jenkins \
+  token_policies="jenkins-policy" \
+  token_ttl=1h \
+  token_max_ttl=4h
+
+# Get Role ID and Secret ID
+vault read auth/approle/role/jenkins/role-id
+vault write -f auth/approle/role/jenkins/secret-id
+```
+
+```groovy
+// Store the AppRole credentials in Jenkins:
+// Manage Jenkins → Manage Credentials
+// Add: Username with Password
+//   Username: <role-id>
+//   Password: <secret-id>
+//   ID: vault-approle-credentials
+
+// Use in a pipeline
+pipeline {
+    agent any
+
+    stages {
+        stage('Fetch from Vault') {
+            steps {
+                withVault(
+                    configuration: [vaultUrl: 'https://vault.example.com',
+                                    vaultCredentialId: 'vault-approle-credentials'],
+                    vaultSecrets: [
+                        [path: 'secret/myapp/database', engineVersion: 2,
+                         secretValues: [
+                             [vaultKey: 'username', envVar: 'DB_USER'],
+                             [vaultKey: 'password', envVar: 'DB_PASS']
+                         ]
+                        ]
+                    ]
+                ) {
+                    sh 'echo "Connecting as $DB_USER"'   // password is masked
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+## Step 14: Compliance, Audit, and Security Hardening
+
+### Enable Audit Trail Plugin
+
+```bash
+# Install Audit Trail plugin
+# Records who triggered each build, changed configurations, and accessed credentials
+
+# Configuration: Manage Jenkins → System → Audit Trail
+# Log location: /var/log/jenkins/audit.log
+# Log format: Include user, action, job name, timestamp
+```
+
+### Security Hardening Checklist
+
+```groovy
+// Script to verify security settings
+import jenkins.model.Jenkins
+import hudson.security.csrf.DefaultCrumbIssuer
+
+def jenkins = Jenkins.instance
+
+// 1. Check CSRF is enabled
+def crumbIssuer = jenkins.getCrumbIssuer()
+println "CSRF Protection: ${crumbIssuer ? 'ENABLED' : 'DISABLED (RISK!)'}"
+
+// 2. Check agent-to-master security
+println "Agent→Master Security: ${jenkins.isUseSecurity() ? 'ENABLED' : 'DISABLED'}"
+
+// 3. Check master executors (should be 0)
+println "Master Executors: ${jenkins.getNumExecutors()} (should be 0 in production)"
+
+// 4. List jobs with no SCM defined (potential configuration drift)
+Jenkins.instance.getAllItems(hudson.model.Job.class).each { job ->
+    if (job instanceof hudson.model.AbstractProject) {
+        def scm = job.scm
+        if (scm instanceof hudson.scm.NullSCM) {
+            println "No SCM: ${job.fullName}"
+        }
+    }
+}
+```
+
+### Disable CLI over Remoting
+
+```bash
+# Disable the Jenkins CLI over remoting (security risk)
+# Manage Jenkins → Configure Global Security
+# Uncheck: "Enable CLI over Remoting"
+
+# Or via system property at startup
+JAVA_ARGS="${JAVA_ARGS} -Djenkins.CLI.disabled=true"
+```
+
+### Content Security Policy (CSP)
+
+```groovy
+// Restrict what HTML reports can load (important for XSS prevention)
+System.setProperty("hudson.model.DirectoryBrowserSupport.CSP",
+    "sandbox allow-same-origin allow-scripts; default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';")
+```
+
+---
+
+## Interview Questions & Answers — Jenkins Administration
+
+### Q1: How do you upgrade Jenkins safely in a production environment?
+
+**A:** Follow this process: (1) Take a full backup of `JENKINS_HOME` — including `jobs/`, `plugins/`, `secrets/`, `users/`, and `config.xml`. (2) Review the Jenkins changelog and LTS release notes for breaking changes. (3) Test the upgrade in a staging environment that mirrors production. (4) Schedule a maintenance window. (5) Stop Jenkins, replace the `jenkins.war`, and start it. (6) Verify all plugins are compatible — go to Manage Jenkins → Manage Plugins and check for warnings. (7) Run a few test builds and check the system log for errors. The ThinBackup or Periodic Backup plugin automates step 1 on a schedule.
+
+### Q2: What is JCasC and what problem does it solve?
+
+**A:** Jenkins Configuration as Code (JCasC) lets you define the entire Jenkins system configuration — security realm, authorisation strategy, credentials, global tools, node configuration, plugin settings — in a YAML file stored in Git. It solves the "snowflake server" problem: without JCasC, Jenkins configuration lives only in Jenkins, is difficult to review, hard to reproduce, and easily gets out of sync between environments. With JCasC, your Jenkins controller is reproducible from scratch in minutes, configuration changes go through code review, and you can track who changed what and when.
+
+### Q3: How would you handle Jenkins running out of disk space?
+
+**A:** Immediate steps: (1) Identify disk consumers — `du -sh /var/lib/jenkins/jobs/*/builds/ | sort -rh | head -20`. (2) Delete old build logs via the Script Console — `Jenkins.instance.items.each { job -> job.builds.findAll { it.number < (job.lastBuild.number - 30) }.each { it.delete() } }`. (3) Run `cleanWs()` on agents to clear stale workspaces. Long-term: configure `logRotator` on all jobs (keep last N builds, keep artifacts for last M), enable workspace cleanup in pipeline `post { always {} }` blocks, and mount a separate volume for `JENKINS_HOME` to make disk expansion easier.
+
+### Q4: How does LDAP / SSO integration work in Jenkins?
+
+**A:** Jenkins supports LDAP through the LDAP plugin. You configure the server URL, Base DN, user search filter (e.g., `uid={0}` for OpenLDAP or `sAMAccountName={0}` for Active Directory), and group search filter. Jenkins then delegates authentication to the LDAP server — users log in with their corporate credentials. For SSO, the GitHub OAuth plugin, SAML plugin, or OIDC plugin can be used to allow login via identity providers like Okta, Azure AD, or Keycloak. In JCasC, this is expressed as a `securityRealm` block, making it reproducible and auditable.
+
+### Q5: What is the difference between matrix-based security and role-based security in Jenkins?
+
+**A:** Matrix-based security (built-in) lets you assign specific Jenkins permissions (Overall/Administer, Job/Build, Job/Create, etc.) to individual users or groups via a permissions matrix in the UI. It becomes unmanageable at scale because you configure per-user permissions for every combination. Role-Based Access Control (RBAC) via the Role Strategy plugin lets you define named roles (e.g., `developer`, `viewer`, `release-manager`), assign permissions to those roles, and then assign users/groups to roles. This scales much better and aligns with how RBAC is done in Kubernetes and cloud IAM.
+
+### Q6: A Jenkins job is stuck in the build queue and never starts. How do you diagnose it?
+
+**A:** Check these in order: (1) Is any agent online? — Go to **Manage Jenkins → Manage Nodes** and check agent status. (2) Do the job's label requirements match an available agent? — The queue tooltip shows the exact reason a job is waiting (e.g., "Waiting for next available executor on nodes with label 'docker'"). (3) Are all executors busy? — Increase the executor count or add more agents. (4) Is the job waiting for a `lock` resource (Lockable Resources plugin)? (5) Is there a `quietPeriod` or `throttle` configuration delaying the build? Use the Script Console to inspect the queue: `Hudson.instance.queue.items.each { println it.task.name + ': ' + it.getCauseOfBlockage() }`.
+
+### Q7: How do you rotate or revoke a Jenkins API token securely?
+
+**A:** API tokens are per-user and managed at **User → Configure → API Token**. To rotate: generate a new token, update all automation that uses the old token, then revoke the old token. Tokens are hashed and not recoverable after creation — if lost, it must be revoked and regenerated. For service accounts, create a dedicated Jenkins user (not a personal account) for automation tools. In regulated environments, set a token expiry policy by configuring the `API Token Statistics` plugin to track usage and flag unused tokens for removal.
+
+### Q8: How do you perform a zero-downtime Jenkins upgrade or migration?
+
+**A:** True zero-downtime requires the CloudBees Jenkins Operations Center (CJOC) with HA, or careful planning: (1) If your builds allow it, drain the build queue by putting the controller in quietDown mode (`java -jar jenkins-cli.jar quiet-down`). (2) Wait for all running builds to complete (or abort long-running ones). (3) Take a snapshot backup. (4) Upgrade the war. (5) Remove quietDown. For migrations between servers, export the configuration via JCasC, replicate `JENKINS_HOME` to the new server, update DNS, and cut over. Credentials and plugin configurations travel with `JENKINS_HOME`.
+
+### Q9: What metrics do you monitor for a production Jenkins instance?
+
+**A:** Key metrics via the Prometheus / Metrics plugin: `jenkins_builds_duration_milliseconds` (build duration trends), `jenkins_builds_failed_total` and `jenkins_builds_success_total` (build success rate), `jenkins_executors_busy` vs `jenkins_executors_available` (executor utilisation — high saturation means you need more agents), `jenkins_node_online` (agent availability), `jenkins_queue_size` (build backlog — a growing queue means throughput is too low). At the OS level: disk I/O on `JENKINS_HOME`, JVM heap usage (too high means you need to increase `-Xmx`), and file descriptor count (Jenkins opens many files during builds).
+
+### Q10: How do you implement disaster recovery for Jenkins?
+
+**A:** A solid DR plan has three components. **Backup**: Automated daily backups of `JENKINS_HOME` (via ThinBackup or a cron job copying to S3/NFS), with backups retained for at least 30 days. Test restores monthly. **Infrastructure as Code**: Store the Jenkins controller configuration in JCasC YAML in Git. Store the `docker-compose.yml` or Helm chart that provisions the Jenkins server in Git. This means spinning up a replacement is a matter of running one command. **Agents**: Because agents are stateless (they pull from Git and build), they can be re-provisioned from AMIs, Docker images, or Kubernetes pod templates without any data restore — only the controller state matters.

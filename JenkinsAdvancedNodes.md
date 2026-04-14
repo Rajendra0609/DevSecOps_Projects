@@ -820,3 +820,257 @@ This project covers:
 - [Jenkins Plugins](https://plugins.jenkins.io/)
 - [Jenkins Kubernetes Plugin](https://plugins.jenkins.io/kubernetes/)
 - [Jenkins EC2 Fleet Plugin](https://plugins.jenkins.io/ec2-fleet/)
+
+---
+
+## Step 11: Ephemeral Agents — Best Practices for Enterprise Scale
+
+One of the most powerful architectural decisions for a mature Jenkins environment is to use **ephemeral agents** — agents that are created on demand when a build starts and destroyed as soon as the build finishes. This eliminates agent drift, ensures clean builds, and allows the infrastructure to scale down to zero cost when idle.
+
+### Why Ephemeral Agents Matter
+
+| Static (permanent) agents | Ephemeral agents |
+|---|---|
+| Configuration drift over time | Always start from a known-good image |
+| Need regular patching | Image rebuild replaces patching |
+| Idle agents waste money | Scale to zero when no builds are running |
+| Builds can share state between runs | Every build gets a clean workspace |
+| Security vulnerabilities can persist | Compromised agent is destroyed after build |
+
+### Kubernetes Ephemeral Agent — Production Pod Template
+
+```yaml
+# pod-template.yaml — define in your Shared Library or JCasC
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: jenkins-agent
+spec:
+  serviceAccountName: jenkins-agent
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  containers:
+    - name: jnlp
+      image: jenkins/inbound-agent:latest
+      resources:
+        requests:
+          cpu: "250m"
+          memory: "256Mi"
+        limits:
+          cpu: "1000m"
+          memory: "1Gi"
+
+    - name: maven
+      image: maven:3.9-eclipse-temurin-17
+      command: ["cat"]
+      tty: true
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "512Mi"
+        limits:
+          cpu: "2000m"
+          memory: "2Gi"
+      volumeMounts:
+        - name: m2-cache
+          mountPath: /root/.m2
+
+    - name: docker
+      image: docker:24-dind
+      securityContext:
+        privileged: true
+      env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+
+  volumes:
+    - name: m2-cache
+      persistentVolumeClaim:
+        claimName: maven-cache-pvc   # Shared PVC so m2 cache persists across builds
+
+  # Spread agents across nodes to avoid single-node overload
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app: jenkins-agent
+```
+
+### ECS (Fargate) Ephemeral Agents
+
+```groovy
+// Jenkinsfile using AWS ECS Fargate agents
+// Requires: Amazon Elastic Container Service Plugin
+
+pipeline {
+    agent {
+        ecs {
+            inheritFrom 'base-ecs-template'
+            memory 2048
+            cpu 1024
+            image 'maven:3.9-eclipse-temurin-17'
+        }
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+    }
+}
+```
+
+---
+
+## Step 12: Advanced Distributed Build Patterns
+
+### Build Promotion Pattern
+
+A common enterprise pattern where a build artifact is promoted through environments only after passing gates at each stage.
+
+```groovy
+pipeline {
+    agent any
+
+    stages {
+        stage('Build & Unit Test') {
+            agent { label 'linux-build' }
+            steps {
+                sh 'mvn clean package'
+                stash name: 'built-artifact', includes: 'target/*.jar'
+            }
+        }
+
+        stage('Integration Test') {
+            agent { label 'linux-test' }
+            steps {
+                unstash 'built-artifact'
+                sh 'mvn verify -Pintegration'
+            }
+        }
+
+        stage('Performance Test') {
+            agent { label 'perf-agent' }
+            when { branch 'main' }
+            steps {
+                unstash 'built-artifact'
+                sh 'k6 run performance/load-test.js'
+            }
+        }
+
+        stage('Promote to Staging') {
+            agent { label 'deployment-agent' }
+            when { branch 'main' }
+            steps {
+                unstash 'built-artifact'
+                // Copy artifact to staging repository
+                sh 'mvn deploy:deploy-file -Durl=http://nexus/staging -Dfile=target/*.jar'
+            }
+        }
+    }
+}
+```
+
+### Fan-Out / Fan-In Pattern
+
+```groovy
+// Build once, test across multiple environments simultaneously
+
+pipeline {
+    agent none
+
+    stages {
+        stage('Build') {
+            agent { docker { image 'maven:3.9-eclipse-temurin-17' } }
+            steps {
+                sh 'mvn clean package -DskipTests'
+                stash name: 'artifact', includes: 'target/*.jar,k8s/**'
+            }
+        }
+
+        stage('Test Across Environments') {
+            parallel {
+                stage('Test on Java 11') {
+                    agent { docker { image 'eclipse-temurin:11' } }
+                    steps {
+                        unstash 'artifact'
+                        sh 'java -jar target/*.jar --run-tests'
+                    }
+                }
+                stage('Test on Java 17') {
+                    agent { docker { image 'eclipse-temurin:17' } }
+                    steps {
+                        unstash 'artifact'
+                        sh 'java -jar target/*.jar --run-tests'
+                    }
+                }
+                stage('Test on Java 21') {
+                    agent { docker { image 'eclipse-temurin:21' } }
+                    steps {
+                        unstash 'artifact'
+                        sh 'java -jar target/*.jar --run-tests'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            agent { label 'deployment-agent' }
+            steps {
+                unstash 'artifact'
+                sh 'kubectl apply -f k8s/'
+            }
+        }
+    }
+}
+```
+
+---
+
+## Interview Questions & Answers — Nodes, Agents & Distributed Builds
+
+### Q1: What is the difference between a Jenkins controller (master) and an agent (node)?
+
+**A:** The Jenkins **controller** (previously called "master") is responsible for: storing configuration and build history, scheduling builds, serving the web UI, managing credentials, and orchestrating pipelines. It should not run build workloads in production — its executors should be set to 0. **Agents** (nodes) are the machines that actually execute build steps. They connect to the controller via JNLP (inbound) or SSH (outbound from controller) and do the heavy lifting — compiling code, running tests, building Docker images, running deployments. Separating them improves security (agents don't have access to Jenkins internals), performance (controller is never CPU/memory-starved by builds), and scalability (you can add agents without touching the controller).
+
+### Q2: What are labels in Jenkins and how do they work?
+
+**A:** Labels (also called tags) are arbitrary strings assigned to agents that pipelines use to request a specific type of agent. For example, you might label an agent with `linux docker maven`. A pipeline using `agent { label 'linux && docker' }` will only run on agents that have both labels. Labels allow you to route specific workloads to appropriate infrastructure — Windows builds to Windows agents, GPU-intensive ML builds to GPU nodes, security scans to isolated agents without internet access.
+
+### Q3: How does Jenkins scale to handle a large number of concurrent builds?
+
+**A:** Three main approaches: (1) **Static horizontal scaling** — add more permanent agents, each with multiple executors. Simple but you pay for idle capacity. (2) **Cloud scaling** — use the EC2 Fleet, Kubernetes, or ECS plugin to provision ephemeral agents on demand. Agents spin up when builds are queued and terminate when idle. This is cost-efficient and is the standard for organisations with variable build loads. (3) **Distributed agent pools with labels** — route different workload types (build, test, deploy, security) to appropriately sized agent pools, preventing one heavy workload from starving another.
+
+### Q4: What is the JNLP protocol and how does it differ from SSH agent launch?
+
+**A:** JNLP (Java Network Launch Protocol), now called the **inbound agent** protocol, has the agent initiate the connection to the controller on port 50000. This is required when the agent is behind a NAT or firewall and the controller cannot reach it directly (common for cloud agents, Kubernetes pods, and developer machines). **SSH launch** has the controller initiate an SSH connection to the agent — the controller must be able to reach the agent's IP directly. SSH is easier to troubleshoot and is the standard for static agents in the same network. Kubernetes agents always use JNLP because the Kubernetes plugin injects the JNLP container into the pod and the pod connects outbound to the controller.
+
+### Q5: How do you prevent a rogue build from interfering with other builds on the same agent?
+
+**A:** Several layers of isolation: (1) **Docker agents** — each build runs in its own container with its own filesystem; the container is destroyed after the build. (2) **Workspace isolation** — Jenkins automatically creates separate workspace directories per job per agent. (3) **Lockable Resources** — if builds share physical resources (a test database, a hardware device), use the Lockable Resources plugin to serialise access. (4) **Separate agent pools with labels** — sensitive builds (production deployments, security scans) run on dedicated isolated agents that other builds cannot access. (5) **Kubernetes agent sandboxing** — each pod runs in its own network namespace and can be assigned a service account with least-privilege permissions.
+
+### Q6: Your Kubernetes Jenkins agent pod keeps running into OOMKilled events. How do you fix it?
+
+**A:** OOMKilled means the container exceeded its memory limit and was killed by the kernel. Steps: (1) Check current limits: `kubectl describe pod <agent-pod>` — look at the `resources.limits.memory` value. (2) Review what's consuming memory — Maven builds are a common culprit; add `-Xmx512m` to `MAVEN_OPTS` or configure it via the pod template's environment variables. (3) Increase the pod template's `resourceLimitMemory` in JCasC or the pod template definition. (4) For Maven specifically, the JVM inside the container does not know about container limits in older JDK versions — use JDK 11+ which is container-aware, or set `-XX:MaxRAMPercentage=75.0` so the JVM respects 75% of the container's available RAM.
+
+### Q7: How do you implement HA (High Availability) for Jenkins?
+
+**A:** True active-active HA for Jenkins is difficult because Jenkins was designed as a single-master system. Options: (1) **CloudBees Jenkins Operations Center** provides enterprise-grade HA with multiple controllers and a shared storage backend. (2) **Active-passive HA** — run a standby Jenkins instance pointing at the same shared NFS/EFS `JENKINS_HOME`. Use a health check to fail over the load balancer to the standby on primary failure. (3) **Kubernetes StatefulSet** — run Jenkins as a StatefulSet with a ReadWriteMany persistent volume. The pod can be rescheduled to any node by Kubernetes if the primary node fails. (4) **Operationally** — the most resilient approach is treating the controller as cattle (JCasC + automated provisioning) so that even if you must destroy and recreate it, you can do so in under 15 minutes.
+
+### Q8: How do you restrict which jobs can run on which agents?
+
+**A:** Two mechanisms: (1) **Labels** — assign labels to agents and set `agent { label 'production-deploy' }` in the pipeline. Only agents with that label are eligible. (2) **Usage mode** — in each agent's configuration, set Usage to "Only build jobs with label expressions matching this node" rather than "Use this node as much as possible". This prevents any unlabelled job from landing on a restricted agent. For strict multi-tenant environments, combine this with folder-level permissions so that only certain teams can trigger jobs with specific labels.
+
+### Q9: What is the Lockable Resources plugin and when would you use it?
+
+**A:** The Lockable Resources plugin lets you define named shared resources in Jenkins (e.g., a test database, a physical device, a deployment slot) and use the `lock` step in a pipeline to acquire exclusive access before using them. If another build holds the lock, the new build waits in the queue. This is essential when you have integration tests that write to a shared database, device tests that need exclusive USB access, or deployments that must be serialised. It prevents race conditions that would cause intermittent test failures.
+
+### Q10: How would you migrate a Jenkins controller with 200+ jobs to a new server with zero job loss?
+
+**A:** (1) **Freeze the source controller** — put it in quietDown mode and wait for running builds to finish. (2) **Rsync JENKINS_HOME** to the new server — `rsync -avz --delete /var/lib/jenkins/ new-server:/var/lib/jenkins/`. (3) **Replicate plugins** — use `jenkins-plugin-manager` to install the same plugin list, or simply rsync the `plugins/` directory. (4) **Update DNS or load balancer** to point to the new server. (5) **Start Jenkins** on the new server and validate: check that all jobs appear, credentials are intact (they're in `secrets/`), agents reconnect, and a sample build runs successfully. (6) **Decommission the old server** after a validation window. If you have JCasC, step 3 is handled automatically by the plugin on first boot.

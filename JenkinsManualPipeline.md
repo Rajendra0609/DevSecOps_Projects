@@ -124,7 +124,101 @@ The next job is package, this job will compile the application and then generate
 ![Screenshot 2024-06-11 082600](https://github.com/cynthia-okoduwa/DevOps-projects/assets/74002629/7efc0f7f-42e1-4728-a470-84ad909cafb5)
 
 # Step 3
-## Configure artifact versioning
+## Configure Artifact Versioning
+
+Artifact versioning ensures every build produces a uniquely identifiable artifact. This makes it straightforward to track exactly what is deployed in each environment, roll back to a specific build, and audit release history.
+
+### Why Versioning Matters
+Without versioning, successive builds overwrite the same artifact file. If a defect is found in production you cannot reliably identify or restore the previously-working binary. A solid versioning strategy also enables traceability from a running container or WAR file all the way back to the Git commit that produced it.
+
+### Versioning Strategy Options
+
+| Strategy | Pattern | When to Use |
+|---|---|---|
+| Build number | `1.0.${BUILD_NUMBER}` | Simple projects, quick setup |
+| Semantic version | `MAJOR.MINOR.PATCH` from pom.xml | Maven/Gradle projects following SemVer |
+| Git commit SHA | `1.0.0-${GIT_COMMIT[0..7]}` | Strong traceability requirement |
+| Timestamp | `1.0.0-20240618-153045` | Date-ordered artifacts |
+| Hybrid (recommended) | `${VERSION}-${BUILD_NUMBER}-${SHORT_SHA}` | Enterprise — combines all three benefits |
+
+### Approach 1 — Build-Number Versioning
+
+This is the simplest approach and appropriate when Maven's pom.xml version is already managed by your release process.
+
+1. Open the **package** job configuration page.
+2. Under the **Build** step, change the Maven goal to:
+   ```
+   package -DskipTests -Drevision=${BUILD_NUMBER}
+   ```
+3. In pom.xml, use `${revision}` as the version placeholder:
+   ```xml
+   <version>1.0.${revision}</version>
+   ```
+4. The produced artifact will now be named `sysfoo-1.0.42.jar` (where 42 is the Jenkins build number), making each build uniquely identifiable.
+
+### Approach 2 — Git Commit SHA Versioning (Recommended for Traceability)
+
+This approach ties every artifact directly to the exact source commit.
+
+1. From the Jenkins main page, go to **Manage Jenkins → System** and add a global environment variable:
+   - **Name**: `GIT_COMMIT_SHORT`
+   - This is computed per-build using the shell step below.
+
+2. In the **package** job, add a **Pre-build Execute Shell** step before the Maven step:
+   ```bash
+   #!/bin/bash
+   SHORT_SHA=$(git rev-parse --short HEAD)
+   echo "SHORT_SHA=${SHORT_SHA}" > build.properties
+   ```
+
+3. Add an **Inject environment variables** step (requires the *EnvInject* plugin) pointing to `build.properties`. This makes `SHORT_SHA` available to subsequent steps.
+
+4. Update the Maven build goal:
+   ```
+   package -DskipTests -Drevision=1.0.0-${BUILD_NUMBER}-${SHORT_SHA}
+   ```
+
+5. The resulting artifact — e.g. `sysfoo-1.0.0-42-a3f9d12.jar` — encodes the build number and commit, giving you full traceability.
+
+### Approach 3 — pom.xml Version Extraction
+
+When your pom.xml already declares a proper semantic version and you want to read it dynamically:
+
+1. Add a Pre-build Execute Shell step:
+   ```bash
+   #!/bin/bash
+   # Extract version from pom.xml
+   APP_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+   echo "APP_VERSION=${APP_VERSION}" > build.properties
+   echo "BUILD_VERSION=${APP_VERSION}-${BUILD_NUMBER}" >> build.properties
+   ```
+
+2. Inject `build.properties` so `BUILD_VERSION` is available to later steps.
+
+3. Use `BUILD_VERSION` in post-build archiving and in artifact naming to get output like `sysfoo-1.3.2-42.jar`.
+
+### Archiving Versioned Artifacts
+
+After applying a versioning strategy, update the **Archive the Artifacts** post-build action to use a pattern that captures the version:
+
+- **Files to archive**: `target/sysfoo-*.jar`
+- Check **Fingerprint all archived artifacts** — Jenkins will record the MD5 fingerprint of every artifact, allowing you to trace which builds, jobs, and deployments used a specific file.
+
+![Artifact versioning fingerprint](https://www.jenkins.io/images/post-images/2021-03-fingerprinting.png)
+
+### Promoting Artifacts to a Repository (Nexus / Artifactory)
+
+In a real-world pipeline, archived artifacts should also be pushed to a binary repository for consumption by downstream pipelines and deployment tools.
+
+1. Install the **Nexus Artifact Uploader** plugin (or the Artifactory plugin for JFrog).
+2. Add a **Post-build Action → Nexus artifact uploader** step with:
+   - **Nexus Version**: Nexus 3
+   - **Protocol / Nexus URL**: `http://nexus.example.com:8081`
+   - **Credentials**: select your stored Nexus credentials
+   - **GroupId / ArtifactId / Version**: use `${BUILD_VERSION}` computed earlier
+   - **Repository**: `maven-releases`
+   - **File**: `target/sysfoo-${BUILD_VERSION}.jar`
+3. Save and run — each successful build will now push a versioned artifact to Nexus, available for all teams to pull by version number.
 
 # Step 4
 ## Connect Jobs with Upstream and Downstream
@@ -161,7 +255,61 @@ In this final step, the goal is to visualize the CI/CD process with a pipeline v
 
 ![Screenshot 2024-06-11 090316](https://github.com/cynthia-okoduwa/DevOps-projects/assets/74002629/c51e55bb-4f4f-4bef-8893-1622e5cf8e12)
 
- 
+### Configuring GitHub Webhook Triggers
+
+Polling SCM on a schedule is inefficient — it wastes executor time and introduces lag. The production-standard approach is to use webhooks so GitHub pushes a notification to Jenkins the moment a commit is made.
+
+**Pre-requisite**: Your Jenkins server must be reachable from the internet, or you must use a service like [smee.io](https://smee.io) or [ngrok](https://ngrok.com) as a proxy for local development.
+
+1. In Jenkins, go to the **build** job configuration. Under **Build Triggers**, check **GitHub hook trigger for GITScm polling**.
+
+2. In GitHub, go to your forked **sysfoo** repository → **Settings → Webhooks → Add webhook**:
+   - **Payload URL**: `http://<your-jenkins-url>/github-webhook/`
+   - **Content type**: `application/json`
+   - **Which events?**: Just the push event
+   - Click **Add webhook**
+
+3. GitHub will send a test ping. In Jenkins, you can verify the webhook was received by checking **Manage Jenkins → System Log**.
+
+4. Now every push to your repository will automatically trigger the build job, which in turn triggers test and package via the upstream/downstream chain you configured.
+
+**Security note**: Validate webhook payloads using a **Secret token**. Set the same token in GitHub's webhook configuration and in the GitHub plugin settings in Jenkins to prevent spoofed build triggers.
+
+---
+
+## Interview Questions & Answers — Manual Pipeline & Jenkins Fundamentals
+
+### Q1: What is the difference between a Freestyle job and a Pipeline job in Jenkins?
+
+**A:** A Freestyle job is configured entirely through the Jenkins UI — it is simple to set up but the configuration lives only in Jenkins, is not version-controlled, and does not scale well for complex workflows. A Pipeline job (using a Jenkinsfile) defines the build, test, and deploy steps as code stored in the source repository alongside the application. This brings version control, code review, auditability, and the ability to rebuild any historical commit with the exact same pipeline that was used at that time.
+
+### Q2: What is the difference between upstream and downstream jobs in Jenkins?
+
+**A:** An upstream job is one that triggers another job when it completes. A downstream job is one that is triggered by a preceding job. In the sysfoo pipeline: Build is upstream to Test (it triggers Test on success), and Test is upstream to Package. From Package's perspective, Test is its upstream. This creates a dependency chain where failures in any upstream job prevent downstream jobs from running, giving you a proper sequential gate.
+
+### Q3: How does Maven integration work in Jenkins and what does each Maven goal do?
+
+**A:** Jenkins uses the Maven Integration plugin to run Maven goals as build steps. Common goals used in CI pipelines: `compile` — compiles source code only, verifying there are no compilation errors; `test` — compiles and runs unit tests, generating Surefire test reports; `package` — compiles, tests, and packages the application into a distributable format (JAR or WAR); `verify` — runs integration tests in addition to unit tests; `install` — runs all of the above and installs the artifact to the local `.m2` repository; `deploy` — pushes the artifact to a remote repository like Nexus or Artifactory.
+
+### Q4: What is artifact fingerprinting in Jenkins?
+
+**A:** Fingerprinting records the MD5 checksum of a build artifact and stores it in Jenkins. When the same artifact is used by downstream jobs or deployed to different environments, Jenkins can cross-reference the fingerprint to show you exactly which build produced it, which jobs consumed it, and where it was deployed. This is essential for traceability and compliance — you can answer "which version is running in production right now and which commit does it correspond to?"
+
+### Q5: How would you trigger a Jenkins job automatically when code is pushed to GitHub?
+
+**A:** Configure a GitHub webhook on the repository that sends a POST to `http://<jenkins-url>/github-webhook/`. On the Jenkins job, enable **GitHub hook trigger for GITScm polling** under Build Triggers. Jenkins receives the webhook event and immediately starts the build. This is far more efficient than SCM polling because there is no lag and no unnecessary polling cycles.
+
+### Q6: What is DIND (Docker-in-Docker) and why is it used in the Jenkins setup described here?
+
+**A:** Docker-in-Docker runs a Docker daemon inside a Docker container. In the Jenkins setup used here, the Jenkins controller itself runs in a container, and DIND provides a separate Docker daemon that Jenkins can use to build and run Docker images for builds. This keeps the host Docker daemon isolated from Jenkins workloads, giving each build a clean environment and preventing builds from interfering with the host system.
+
+### Q7: How do you handle a failing build that is blocking the rest of the pipeline?
+
+**A:** In a manually chained upstream/downstream setup, configure the downstream job's **Build Trigger** to fire only on a **stable** upstream build. If the upstream fails, the downstream never starts — which is the correct default. For more nuanced control (e.g., running cleanup even on failure), use a Declarative Pipeline with a `post { failure {} }` block or `catchError` to control whether pipeline execution continues after a failing step.
+
+### Q8: What is the Build Pipeline Plugin and what are its limitations?
+
+**A:** The Build Pipeline Plugin provides a visual view of connected upstream/downstream Freestyle jobs, showing build status in a colour-coded pipeline layout. It is useful for visualising manual pipelines. However, it is not recommended for production use because it uses Freestyle jobs (not code-defined pipelines), does not support parallel stages, has limited conditional logic, and the plugin is not actively maintained for modern Jenkins versions. The correct modern replacement is the Blue Ocean UI together with a Declarative Pipeline Jenkinsfile.
 
 
 
