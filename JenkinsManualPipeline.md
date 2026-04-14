@@ -65,7 +65,7 @@ docker-compose up -d
 # Step 2
 ## Set up a pipeline for Maven project.
 
-In this step, I will begin the process of building a pipeline for a Java application that uses Maven as a build tool. Before starting to build the pipeline, first fork the GitHub repository of the application code [here](https://github.com/udbc/sysfoo)
+In this step, I will begin the process of building a pipeline for a Java application that uses Maven as a build tool. Before starting to build the pipeline, first fork the GitHub repository of the application code [here]([https://github.com/udbc/sysfoo](https://github.com/Rajendra0609/jenkins_DevSecOps_Practice_sysfoo))
 
 ### Set up Build Job
 
